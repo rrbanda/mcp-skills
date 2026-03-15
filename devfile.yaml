@@ -19,6 +19,8 @@ components:
           value: https://llamastack-llamastack.apps.ocp.v7hjl.sandbox2288.opentlc.com/v1
         - name: OPENAI_API_KEY
           value: dummy
+        - name: XDG_STATE_HOME
+          value: /tmp/.local/state
       endpoints:
         - name: fastmcp
           targetPort: 8000
