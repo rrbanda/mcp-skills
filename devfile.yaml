@@ -16,7 +16,7 @@ components:
         - name: GOOSE_MODEL
           value: vllm-inference/gpt-oss-120b
         - name: OPENAI_HOST
-          value: https://llamastack-llamastack.apps.ocp.v7hjl.sandbox2288.opentlc.com
+          value: http://localhost:9090
         - name: OPENAI_BASE_PATH
           value: v1/responses
         - name: OPENAI_API_KEY
@@ -28,6 +28,11 @@ components:
           targetPort: 8000
           exposure: internal
 commands:
+  - id: start-llm-proxy
+    exec:
+      component: tools
+      commandLine: python3 llm_proxy.py
+      workingDir: ${PROJECT_SOURCE}
   - id: install-goose-extension
     exec:
       component: tools
