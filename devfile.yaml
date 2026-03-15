@@ -1,0 +1,49 @@
+schemaVersion: 2.2.2
+metadata:
+  name: mcp-skills-workspace
+  namespace: admin-devspaces
+attributes:
+  che-theia.eclipse.org/vscode-extensions:
+    - https://open-vsx.org/api/ms-python/python/latest
+components:
+  - name: tools
+    container:
+      image: quay.io/devfile/universal-developer-image:ubi8-latest
+      memoryLimit: 4Gi
+      memoryRequest: 1Gi
+      cpuLimit: "2"
+      cpuRequest: 500m
+      mountSources: true
+      env:
+        - name: GOOSE_PROVIDER
+          value: openai
+        - name: GOOSE_MODEL
+          value: vllm-inference/gpt-oss-120b
+        - name: OPENAI_API_BASE
+          value: https://llamastack-llamastack.apps.ocp.v7hjl.sandbox2288.opentlc.com/v1
+        - name: OPENAI_API_KEY
+          value: dummy
+      endpoints:
+        - name: fastmcp
+          targetPort: 8000
+          exposure: internal
+commands:
+  - id: install-deps
+    exec:
+      component: tools
+      commandLine: pip install fastmcp httpx pyyaml
+      workingDir: ${PROJECT_SOURCE}
+  - id: install-goose
+    exec:
+      component: tools
+      commandLine: curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
+      workingDir: /tmp
+events:
+  postStart:
+    - install-deps
+    - install-goose
+projects:
+  - name: mcp-skills
+    git:
+      remotes:
+        origin: https://github.com/rrbanda/mcp-skills.git
