@@ -188,52 +188,15 @@ If both work, your setup is complete.
 
 ## Demo: Generate and Deploy an MCP Server
 
-This demo shows goose generating an MCP server from a REST API, then deploying it to OpenShift -- entirely driven by skills, no manual coding.
+This demo shows goose generating an MCP server from a REST API, then deploying it to OpenShift -- entirely driven by skills, no manual coding. It uses two models through Llama Stack: the on-prem model (`gpt-oss-120b`) for code generation and tool usage, and Gemini for deployment tasks that need a larger context window.
 
-### Demo Step 1: Generate the MCP server
+### One-time setup (before the demo)
 
-```bash
-goose run \
-  --recipe skills/create-fastmcp-server.yaml \
-  --params output_filename=devspaces_mcp.py \
-  --params "server_name=DevSpaces MCP Server" \
-  --no-session
-```
-
-Goose reads [.goosehints](.goosehints) for API context, generates `devspaces_mcp.py` with MCP tools for workspace management (list, get, create, start, stop, delete), creates `requirements.txt`, validates imports, and smoke tests against the live cluster.
-
-### Demo Step 2: Test the generated server locally
+Log into OpenShift and grant build permissions:
 
 ```bash
-goose run --no-session \
-  --text "Test the list_workspaces tool in devspaces_mcp.py by running it against the admin-devspaces namespace. If there are bugs, fix them."
-```
+oc login --insecure-skip-tls-verify
 
-Goose will run the code, find bugs (if any), and fix them autonomously.
-
-### Demo Step 3: Register and use the MCP server
-
-Add the generated server as a goose extension:
-
-```bash
-goose configure
-# Choose: Add Extension > stdio
-# Command: python3
-# Args: devspaces_mcp.py
-# Name: devspaces-mcp
-```
-
-Then use it:
-
-```bash
-goose run --no-session --text "List all Dev Spaces workspaces in admin-devspaces"
-```
-
-### Demo Step 4: Deploy the MCP server to OpenShift
-
-**a) Grant build permissions** (one-time setup, run from the Dev Spaces terminal):
-
-```bash
 SA=$(oc get pod -l 'controller.devfile.io/devworkspace_name' \
   -n admin-devspaces -o jsonpath='{.items[0].spec.serviceAccountName}')
 
@@ -241,12 +204,71 @@ oc adm policy add-role-to-user edit \
   system:serviceaccount:admin-devspaces:$SA -n admin-devspaces
 ```
 
-**b) Run the deploy skill** -- goose handles everything:
+### Demo Step 1: Generate the MCP server (on-prem model)
 
 ```bash
 goose run \
+  --recipe skills/create-fastmcp-server.yaml \
+  --params output_filename=devspaces_mcp_server.py \
+  --params "server_name=DevSpaces MCP Server" \
+  --no-session
+```
+
+Goose reads [.goosehints](.goosehints) for API context, generates `devspaces_mcp_server.py` with MCP tools for workspace management (list, get, create, start, stop, delete), creates `requirements.txt`, validates imports, and smoke tests against the live cluster. The skill enforces a mandatory smoke test that must print `SUCCESS:` before completing.
+
+### Demo Step 2: Verify the generated server
+
+Quick manual check to confirm the server works:
+
+```bash
+python3 -c "
+import asyncio
+from devspaces_mcp_server import list_workspaces
+result = asyncio.run(list_workspaces('admin-devspaces'))
+print('SUCCESS:', len(result), 'workspace(s)')
+for w in result: print(' ', w)
+"
+```
+
+### Demo Step 3: Register and use the MCP server (on-prem model)
+
+Add the generated server as a goose extension. Run this to write the config directly:
+
+```bash
+cat >> /home/user/.config/goose/config.yaml << 'YAML'
+  devspaces-mcp:
+    enabled: true
+    type: stdio
+    name: devspaces-mcp
+    description: MCP server for managing OpenShift Dev Spaces workspaces
+    cmd: python3
+    args:
+      - /projects/mcp-skills/devspaces_mcp_server.py
+    envs: {}
+    timeout: 300
+    bundled: null
+    available_tools: []
+YAML
+```
+
+Then use it through goose -- the on-prem model calls the MCP tools directly:
+
+```bash
+goose run --no-session \
+  --system "You have these tools: list_workspaces, get_workspace, create_workspace, start_workspace, stop_workspace, delete_workspace, write, edit, shell, tree. NEVER call open_file or apply_patch." \
+  --text "List all Dev Spaces workspaces in admin-devspaces"
+```
+
+Goose invokes `list_workspaces` from the MCP server and returns workspace data from the live cluster.
+
+### Demo Step 4: Deploy the MCP server to OpenShift (Gemini)
+
+The deploy skill builds a container image and creates Kubernetes resources. This requires a larger context window (build logs are verbose), so we use Gemini via Llama Stack:
+
+```bash
+GOOSE_MODEL="gemini/models/gemini-2.5-flash" goose run \
   --recipe skills/deploy-fastmcp-server.yaml \
-  --params server_file=devspaces_mcp.py \
+  --params server_file=devspaces_mcp_server.py \
   --params namespace=admin-devspaces \
   --params image_name=devspaces-mcp \
   --no-session
@@ -259,9 +281,16 @@ Goose will:
 4. Build the image using OpenShift's native build system (`oc new-build` / `oc start-build`)
 5. Create Deployment, Service, and Route via `oc apply`
 6. Verify the pod is Running
-7. Report the URL: `https://devspaces-mcp-<namespace>.apps.<cluster>/mcp`
+7. Report the URL
 
-### Demo Step 5: Use the deployed MCP server
+### Demo Step 5: Verify the deployment
+
+```bash
+oc get pods -l app=devspaces-mcp -n admin-devspaces
+oc get route devspaces-mcp -n admin-devspaces -o jsonpath='https://{.spec.host}/mcp'; echo
+```
+
+### Demo Step 6: Use the deployed MCP server
 
 Register the deployed server as a goose extension:
 
@@ -275,8 +304,20 @@ goose configure
 Then use it:
 
 ```bash
-goose run --no-session --text "List all workspaces in admin-devspaces namespace"
+goose run --no-session \
+  --system "You have these tools: list_workspaces, get_workspace, create_workspace, start_workspace, stop_workspace, delete_workspace. NEVER call open_file or apply_patch." \
+  --text "List all workspaces in admin-devspaces namespace"
 ```
+
+### Model usage summary
+
+| Step | Model | Why |
+|------|-------|-----|
+| Generate MCP server | `gpt-oss-120b` (on-prem) | Code generation fits in context; demonstrates on-prem capability |
+| Use MCP tools | `gpt-oss-120b` (on-prem) | Tool calling with `--system` constraint; fully air-gapped |
+| Deploy to OpenShift | `gemini-2.5-flash` (cloud via Llama Stack) | Build logs consume context; Gemini handles large contexts |
+
+Both models are accessed through Llama Stack -- the workspace only talks to the local proxy on `localhost:9090`. No direct cloud API keys are needed.
 
 ---
 
@@ -357,7 +398,7 @@ Key patterns from this repo:
 | [llm_proxy.py](llm_proxy.py) | Starlette proxy fixing Llama Stack / goose streaming incompatibilities |
 | [.goosehints](.goosehints) | Project context for goose (API endpoints, auth, response format) |
 | [skills/](skills/) | Goose recipes for reusable workflows |
-| [devspaces_mcp.py](devspaces_mcp.py) | AI-generated FastMCP server for DevWorkspace management |
+| devspaces_mcp_server.py | AI-generated FastMCP server for DevWorkspace management (created by goose) |
 | [requirements.txt](requirements.txt) | Python dependencies for the MCP server |
 
 ---
