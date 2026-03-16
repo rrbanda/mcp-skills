@@ -82,6 +82,15 @@ instructions: |
   - Use constants for API base URLs at the top of the file
   - Import `os` and `subprocess` so tokens can be auto-detected from the environment
 
+  ## CRITICAL: Fixing Rules
+
+  When fixing bugs, follow these rules strictly:
+  - NEVER refactor working code. Only change what is broken.
+  - If you change a function into a different pattern, update ALL callers.
+  - After every `edit`, re-run the validation to confirm the fix worked.
+  - If a global variable is used in multiple functions, do NOT convert it to a
+    function call unless you also update every reference.
+
 parameters:
   - key: output_filename
     input_type: string
@@ -125,22 +134,21 @@ prompt: |
   **Step 3 — GENERATE REQUIREMENTS**
   Use the `write` tool to create requirements.txt with: fastmcp, httpx
 
-  **Step 4 — VALIDATE**
+  **Step 4 — VALIDATE IMPORTS**
   Use `shell` to run:
     python3 -c "import {{ output_filename | replace('.py', '') }}; print('OK')"
-  If it fails, use `edit` to fix the error, then re-validate.
+  If it fails, use `edit` to fix ONLY the broken line, then re-validate.
+  Do NOT refactor other code while fixing.
 
-  **Step 5 — SMOKE TEST**
-  If the project has cluster access (check with `shell`: `oc whoami`), run a
-  quick test using `shell`:
-    python3 -c "
-    import asyncio
-    from {{ output_filename | replace('.py', '') }} import list_workspaces
-    result = asyncio.run(list_workspaces('admin-devspaces'))
-    print(f'Found {len(result)} workspace(s)')
-    for ws in result: print(f'  - {ws}')
-    "
-  If this fails, use `edit` to fix the issue, then re-run the test.
+  **Step 5 — SMOKE TEST (MANDATORY)**
+  Use `shell` to run this exact test:
+    python3 -c "import asyncio; from {{ output_filename | replace('.py', '') }} import list_workspaces; result = asyncio.run(list_workspaces('admin-devspaces')); print('SUCCESS:', len(result), 'workspace(s)'); [print(' ', w) for w in result]"
+  This MUST print "SUCCESS:" with workspace data.
+  If it fails:
+    1. Read the error message carefully
+    2. Use `edit` to fix ONLY the specific bug — do NOT refactor
+    3. Re-run the EXACT same test command above
+    4. Repeat until "SUCCESS:" appears
 
   **Step 6 — REPORT**
-  Summarize what was created: filename, number of tools, and test results.
+  Summarize: filename, number of tools, and the SUCCESS test output.
