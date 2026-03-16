@@ -46,6 +46,7 @@ commands:
 events:
   postStart:
     - start-llm-proxy
+    - install-goose-extension
 projects:
   - name: mcp-skills
     git:
