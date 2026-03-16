@@ -86,39 +86,12 @@ This gets you running in under 10 minutes using the pre-built workspace image.
 
 Dev Spaces reads [devfile.yaml](devfile.yaml), pulls the pre-built image (`quay.io/rbrhssa/mcp-skills:latest`), and opens VS Code in your browser. Wait for the workspace to finish starting (1-2 minutes).
 
-### Step 2: Configure for your cluster
+### Step 2: Set environment variables
 
-Open a terminal in Dev Spaces (**Terminal > New Terminal**) and configure two things:
-
-**a) Set your Llama Stack URL**
+Open a terminal in Dev Spaces (**Terminal > New Terminal**) and run all of the following. Replace `LLAMASTACK_URL` and `GOOSE_MODEL` with your actual values from the prerequisites step:
 
 ```bash
-# Replace with your actual Llama Stack URL from the prerequisites step
 export LLAMASTACK_URL=https://llamastack-llamastack.apps.<your-cluster-domain>
-
-# Verify it's reachable
-curl -s $LLAMASTACK_URL/v1/models | python3 -c "import sys,json; [print(m['id']) for m in json.load(sys.stdin)['data'] if m.get('custom_metadata',{}).get('model_type')=='llm']"
-```
-
-**b) Set the model name** (if different from the default)
-
-```bash
-# Only needed if your model is NOT named vllm-inference/gpt-oss-120b
-export GOOSE_MODEL=<your-model-id>
-```
-
-### Step 3: Verify environment variables
-
-```bash
-echo "OPENAI_HOST=$OPENAI_HOST"
-echo "OPENAI_BASE_PATH=$OPENAI_BASE_PATH"
-echo "GOOSE_PROVIDER=$GOOSE_PROVIDER"
-echo "LLAMASTACK_URL=$LLAMASTACK_URL"
-```
-
-All four should have values. **If `OPENAI_HOST` or `OPENAI_BASE_PATH` are empty**, the devfile env vars weren't applied -- set them all:
-
-```bash
 export OPENAI_HOST=http://localhost:9090
 export OPENAI_BASE_PATH=v1/responses
 export GOOSE_PROVIDER=openai
@@ -127,20 +100,29 @@ export OPENAI_API_KEY=dummy
 export XDG_STATE_HOME=/tmp/.local/state
 ```
 
-> **Tip:** Add all exports to `~/.bashrc` so they persist across terminal restarts:
-> ```bash
-> cat >> ~/.bashrc << 'EOF'
-> export LLAMASTACK_URL=https://llamastack-llamastack.apps.<your-cluster-domain>
-> export OPENAI_HOST=http://localhost:9090
-> export OPENAI_BASE_PATH=v1/responses
-> export GOOSE_PROVIDER=openai
-> export GOOSE_MODEL=vllm-inference/gpt-oss-120b
-> export OPENAI_API_KEY=dummy
-> export XDG_STATE_HOME=/tmp/.local/state
-> EOF
-> ```
+> **Why all of them?** The devfile defines these env vars, but they are not always applied to running terminals. Exporting them explicitly is the reliable path.
 
-### Step 4: Verify the LLM proxy is running
+Persist across terminal restarts by adding to `~/.bashrc`:
+
+```bash
+cat >> ~/.bashrc << 'EOF'
+export LLAMASTACK_URL=https://llamastack-llamastack.apps.<your-cluster-domain>
+export OPENAI_HOST=http://localhost:9090
+export OPENAI_BASE_PATH=v1/responses
+export GOOSE_PROVIDER=openai
+export GOOSE_MODEL=vllm-inference/gpt-oss-120b
+export OPENAI_API_KEY=dummy
+export XDG_STATE_HOME=/tmp/.local/state
+EOF
+```
+
+Verify Llama Stack is reachable:
+
+```bash
+curl -s $LLAMASTACK_URL/v1/models | python3 -c "import sys,json; [print(m['id']) for m in json.load(sys.stdin)['data'] if m.get('custom_metadata',{}).get('model_type')=='llm']"
+```
+
+### Step 3: Verify the LLM proxy is running
 
 The [llm_proxy.py](llm_proxy.py) proxy starts automatically when the workspace launches (via the devfile `postStart` event). Verify it's running and can reach Llama Stack:
 
@@ -158,7 +140,7 @@ nohup python3 llm_proxy.py > /tmp/llm-proxy.log 2>&1 &
 
 Check logs anytime with `cat /tmp/llm-proxy.log`.
 
-### Step 5: Install the Goose VS Code extension (optional)
+### Step 4: Install the Goose VS Code extension (optional)
 
 If you want the goose sidebar UI in VS Code:
 
@@ -169,7 +151,7 @@ If you want the goose sidebar UI in VS Code:
 
 Or use **Terminal > Run Task > install-goose-extension**. The CLI works without this.
 
-### Step 6: Verify goose is working
+### Step 5: Verify goose is working
 
 Test basic LLM connectivity:
 
@@ -233,10 +215,19 @@ for w in result: print(' ', w)
 
 ### Demo Step 3: Register and use the MCP server (on-prem model)
 
-Add the generated server as a goose extension. Run this to write the config directly:
+Add the generated server as a goose extension. This writes the complete config (including the built-in `developer` extension):
 
 ```bash
-cat >> /home/user/.config/goose/config.yaml << 'YAML'
+cat > /home/user/.config/goose/config.yaml << 'YAML'
+extensions:
+  developer:
+    enabled: true
+    type: platform
+    name: developer
+    description: Write and edit files, and execute shell commands
+    display_name: Developer
+    bundled: true
+    available_tools: []
   devspaces-mcp:
     enabled: true
     type: stdio
@@ -408,7 +399,7 @@ Key patterns from this repo:
 
 ### Env vars not set after workspace creation
 
-If `OPENAI_HOST` or `OPENAI_BASE_PATH` are empty, the devfile env vars weren't applied (happens when the workspace was created before the devfile was updated). Export them manually (see Step 3) or delete and recreate the workspace.
+If `OPENAI_HOST` or `OPENAI_BASE_PATH` are empty, the devfile env vars weren't applied. Export them manually (see Step 2) or delete and recreate the workspace.
 
 ### goose sends requests to api.openai.com instead of Llama Stack
 
