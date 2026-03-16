@@ -139,15 +139,9 @@ export XDG_STATE_HOME=/tmp/.local/state
 > EOF
 > ```
 
-### Step 4: Start the LLM proxy
+### Step 4: Verify the LLM proxy is running
 
-The [llm_proxy.py](llm_proxy.py) proxy runs on port 9090 and fixes compatibility issues between goose and Llama Stack's Responses API.
-
-```bash
-python3 llm_proxy.py &
-```
-
-Verify the proxy is running and can reach Llama Stack:
+The [llm_proxy.py](llm_proxy.py) proxy starts automatically when the workspace launches (via the devfile `postStart` event). Verify it's running and can reach Llama Stack:
 
 ```bash
 curl -s http://localhost:9090/v1/models | python3 -c "import sys,json; print('OK -', len(json.load(sys.stdin)['data']), 'models available')"
@@ -155,7 +149,13 @@ curl -s http://localhost:9090/v1/models | python3 -c "import sys,json; print('OK
 
 You should see something like `OK - 3 models available`.
 
-> **Note:** The proxy runs as a background process. You need to restart it each time the workspace restarts. Use `python3 llm_proxy.py &` again, or run via **Terminal > Run Task > start-llm-proxy**.
+If it's not running (connection refused), start it manually:
+
+```bash
+nohup python3 llm_proxy.py > /tmp/llm-proxy.log 2>&1 &
+```
+
+Check logs anytime with `cat /tmp/llm-proxy.log`.
 
 ### Step 5: Install the Goose VS Code extension (optional)
 

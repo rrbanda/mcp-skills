@@ -33,7 +33,7 @@ commands:
   - id: start-llm-proxy
     exec:
       component: tools
-      commandLine: python3 llm_proxy.py
+      commandLine: nohup python3 llm_proxy.py > /tmp/llm-proxy.log 2>&1 &
       workingDir: ${PROJECT_SOURCE}
   - id: install-goose-extension
     exec:
@@ -43,6 +43,9 @@ commands:
         /checode/checode-linux-libc/bin/remote-cli/code --install-extension /opt/extensions/vscode-goose.vsix 2>/dev/null ||
         echo "Install manually: Extensions > ... > Install from VSIX > /opt/extensions/vscode-goose.vsix"
       workingDir: ${PROJECT_SOURCE}
+events:
+  postStart:
+    - start-llm-proxy
 projects:
   - name: mcp-skills
     git:
