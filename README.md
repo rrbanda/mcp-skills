@@ -1,6 +1,6 @@
 # On-Prem AI Coding Agent on OpenShift
 
-A reference architecture for running [goose](https://block.github.io/goose/) -- an open-source AI coding agent by Block -- fully on-premises on OpenShift. Goose writes code, debugs, generates MCP tools, deploys to the cluster, and fixes its own bugs -- all powered by an on-prem LLM served by vLLM on OpenShift AI, accessed through [Llama Stack](https://llamastack.github.io/)'s unified API gateway.
+A reference architecture for running [goose](https://block.github.io/goose/) -- an open-source AI coding agent by Block -- fully on-premises on OpenShift. Goose writes code, debugs, generates MCP tools, deploys to the cluster, and fixes its own bugs -- powered by an on-prem LLM served by vLLM on OpenShift AI, with [Llama Stack](https://llamastack.github.io/) as the unified AI runtime providing standardized APIs for inference, agents, RAG, and safety.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ A reference architecture for running [goose](https://block.github.io/goose/) -- 
            │                 ▼
            │  ┌──────────────────────────────────┐
            │  │  OpenShift AI                      │
-           │  │  Llama Stack (unified API gateway) │
+           │  │  Llama Stack (AI runtime)          │
            │  │    ├─ vLLM → gpt-oss-120b (on-prem)│
            │  │    └─ Gemini (cloud, optional)     │
            │  └──────────────────────────────────┘
@@ -43,7 +43,7 @@ A reference architecture for running [goose](https://block.github.io/goose/) -- 
 | OpenShift Dev Spaces operator | Yes | Install from OperatorHub |
 | OpenShift AI (RHOAI) | Yes | Platform for deploying AI/ML workloads |
 | vLLM model serving | Yes | Serves the LLM (e.g. `gpt-oss-120b` with `max_model_len: 65536`) |
-| [Llama Stack](https://llamastack.github.io/) | Yes | Unified API gateway over vLLM (and optionally cloud models) |
+| [Llama Stack](https://llamastack.github.io/) | Yes | Unified AI runtime providing OpenAI-compatible inference APIs over vLLM |
 
 ### Find your Llama Stack URL and model name
 
@@ -318,19 +318,19 @@ goose run --no-session \
 | Use MCP tools | `gpt-oss-120b` (on-prem) | Tool calling with `--system` constraint; fully air-gapped |
 | Deploy to OpenShift | `gemini-2.5-flash` (cloud via Llama Stack) | Build logs consume context; Gemini handles large contexts |
 
-Both models are accessed through [Llama Stack](https://llamastack.github.io/) -- a unified API gateway that abstracts the underlying providers. The workspace only talks to the local proxy on `localhost:9090`. Llama Stack routes to vLLM (on-prem) or Gemini (cloud) based on the model name. No direct cloud API keys are needed in the workspace.
+Both models are accessed through [Llama Stack](https://llamastack.github.io/) -- a unified AI runtime environment that provides standardized APIs for inference, RAG, agents, and safety. Llama Stack proxies inference requests to the configured backend providers: vLLM (on-prem) or Gemini (cloud) based on the model name. The workspace only talks to the local proxy on `localhost:9090`. No direct cloud API keys are needed in the workspace.
 
 ---
 
 ## Using a cloud model via Llama Stack
 
-If the on-prem model's context window is too small for complex tasks, Llama Stack can route to cloud models like Gemini (provider flexibility -- swap providers without code changes). Override the model at runtime:
+If the on-prem model's context window is too small for complex tasks, Llama Stack supports multiple inference providers -- you can add cloud models like Gemini alongside on-prem vLLM. Override the model at runtime:
 
 ```bash
 GOOSE_MODEL="gemini/models/gemini-2.5-flash" goose run --no-session --text "your task"
 ```
 
-The request still goes through the local proxy to Llama Stack, which routes to the Gemini provider. No API keys are needed in the workspace -- Llama Stack handles provider authentication server-side.
+The request still goes through the local proxy to Llama Stack, which proxies to the configured Gemini inference provider. No API keys are needed in the workspace -- Llama Stack handles provider authentication server-side.
 
 ---
 
