@@ -1,5 +1,7 @@
 # On-Prem AI Coding Agent on OpenShift
 
+> **Workshop**: [Secure AI Coding Agents on OpenShift](https://rrbanda.github.io/mcp-skills/) -- a hands-on workshop covering why AI agents need sandboxes, the architecture of DevSpaces + Agent Sandbox, and end-to-end demos with Goose, MCP, and Kata VM isolation.
+
 A reference architecture for running [goose](https://block.github.io/goose/) -- an open-source AI coding agent by Block -- fully on-premises on OpenShift. Goose writes code, debugs, generates MCP tools, deploys to the cluster, and fixes its own bugs -- powered by an on-prem LLM served by vLLM on OpenShift AI, with [Llama Stack](https://llamastack.github.io/) as the unified AI runtime providing standardized APIs for inference, agents, RAG, and safety.
 
 ## Architecture
@@ -7,20 +9,22 @@ A reference architecture for running [goose](https://block.github.io/goose/) -- 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  OpenShift Dev Spaces (VS Code in Browser)                  │
-│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Goose Agent   │  │  LLM Proxy   │  │  Skills/Recipes  │  │
-│  │  (CLI + ext)   │  │  :9090       │  │  (YAML files)    │  │
-│  └───────┬───────┘  └──────┬───────┘  └──────────────────┘  │
-│          │                 │                                  │
-└──────────┼─────────────────┼────────────────────────────────┘
-           │                 │
-           │                 ▼
-           │  ┌──────────────────────────────────┐
-           │  │  OpenShift AI                      │
-           │  │  Llama Stack (AI runtime)          │
-           │  │    ├─ vLLM → gpt-oss-120b (on-prem)│
-           │  │    └─ Gemini (cloud, optional)     │
-           │  └──────────────────────────────────┘
+│  ┌───────────────┐  ┌──────────────────┐                    │
+│  │  Goose Agent   │  │  Skills/Recipes  │                    │
+│  │  (CLI + ext)   │  │  (YAML files)    │                    │
+│  └───────┬───────┘  └──────────────────┘                    │
+│          │                                                   │
+└──────────┼──────────────────────────────────────────────────┘
+           │
+           │  /v1/chat/completions
+           ▼
+  ┌──────────────────────────────────┐
+  │  OpenShift AI                      │
+  │  Llama Stack (AI runtime)          │
+  │    ├─ vLLM → gpt-oss-120b (on-prem)│
+  │    └─ Gemini (cloud, optional)     │
+  └──────────────────────────────────┘
+           │
            ▼
   ┌────────────────────────────┐
   │  MCP Servers (tools)       │
@@ -88,12 +92,11 @@ Dev Spaces reads [devfile.yaml](devfile.yaml), pulls the pre-built image (`quay.
 
 ### Step 2: Set environment variables
 
-Open a terminal in Dev Spaces (**Terminal > New Terminal**) and run all of the following. Replace `LLAMASTACK_URL` and `GOOSE_MODEL` with your actual values from the prerequisites step:
+Open a terminal in Dev Spaces (**Terminal > New Terminal**) and run all of the following. Replace the Llama Stack URL and model name with your actual values from the prerequisites step:
 
 ```bash
-export LLAMASTACK_URL=https://llamastack-llamastack.apps.<your-cluster-domain>
-export OPENAI_HOST=http://localhost:9090
-export OPENAI_BASE_PATH=v1/responses
+export OPENAI_HOST=https://llamastack-llamastack.apps.<your-cluster-domain>
+export OPENAI_BASE_PATH=v1/chat/completions
 export GOOSE_PROVIDER=openai
 export GOOSE_MODEL=vllm-inference/gpt-oss-120b
 export OPENAI_API_KEY=dummy
@@ -106,9 +109,8 @@ Persist across terminal restarts by adding to `~/.bashrc`:
 
 ```bash
 cat >> ~/.bashrc << 'EOF'
-export LLAMASTACK_URL=https://llamastack-llamastack.apps.<your-cluster-domain>
-export OPENAI_HOST=http://localhost:9090
-export OPENAI_BASE_PATH=v1/responses
+export OPENAI_HOST=https://llamastack-llamastack.apps.<your-cluster-domain>
+export OPENAI_BASE_PATH=v1/chat/completions
 export GOOSE_PROVIDER=openai
 export GOOSE_MODEL=vllm-inference/gpt-oss-120b
 export OPENAI_API_KEY=dummy
@@ -119,28 +121,10 @@ EOF
 Verify Llama Stack is reachable:
 
 ```bash
-curl -s $LLAMASTACK_URL/v1/models | python3 -c "import sys,json; [print(m['id']) for m in json.load(sys.stdin)['data'] if m.get('custom_metadata',{}).get('model_type')=='llm']"
+curl -s $OPENAI_HOST/v1/models | python3 -c "import sys,json; [print(m['id']) for m in json.load(sys.stdin)['data'] if m.get('custom_metadata',{}).get('model_type')=='llm']"
 ```
 
-### Step 3: Verify the LLM proxy is running
-
-The [llm_proxy.py](llm_proxy.py) proxy starts automatically when the workspace launches (via the devfile `postStart` event). Verify it's running and can reach Llama Stack:
-
-```bash
-curl -s http://localhost:9090/v1/models | python3 -c "import sys,json; print('OK -', len(json.load(sys.stdin)['data']), 'models available')"
-```
-
-You should see something like `OK - 3 models available`.
-
-If it's not running (connection refused), start it manually:
-
-```bash
-nohup python3 llm_proxy.py > /tmp/llm-proxy.log 2>&1 &
-```
-
-Check logs anytime with `cat /tmp/llm-proxy.log`.
-
-### Step 4: Install the Goose VS Code extension (optional)
+### Step 3: Install the Goose VS Code extension (optional)
 
 If you want the goose sidebar UI in VS Code:
 
@@ -151,7 +135,7 @@ If you want the goose sidebar UI in VS Code:
 
 Or use **Terminal > Run Task > install-goose-extension**. The CLI works without this.
 
-### Step 5: Verify goose is working
+### Step 4: Verify goose is working
 
 Test basic LLM connectivity:
 
@@ -309,7 +293,61 @@ goose run --no-session \
 | Use MCP tools | `gpt-oss-120b` (on-prem) | Tool calling with `--system` constraint; fully air-gapped |
 | Deploy to OpenShift | `gemini-2.5-flash` (cloud via Llama Stack) | Build logs consume context; Gemini handles large contexts |
 
-Both models are accessed through [Llama Stack](https://llamastack.github.io/) -- a unified AI runtime environment that provides standardized APIs for inference, RAG, agents, and safety. Llama Stack proxies inference requests to the configured backend providers: vLLM (on-prem) or Gemini (cloud) based on the model name. The workspace only talks to the local proxy on `localhost:9090`. No direct cloud API keys are needed in the workspace.
+Both models are accessed through [Llama Stack](https://llamastack.github.io/) -- a unified AI runtime environment that provides standardized APIs for inference, RAG, agents, and safety. Goose talks directly to Llama Stack via the standard OpenAI Chat Completions API (`/v1/chat/completions`). Llama Stack routes inference requests to the configured backend providers: vLLM (on-prem) or Gemini (cloud) based on the model name. No direct cloud API keys are needed in the workspace.
+
+---
+
+## Demo: Create an Orchestrator Workflow
+
+This demo shows goose scaffolding a complete [RHDH Orchestrator](https://github.com/rhdhorchestrator/orchestrator-demo) workflow project -- a SonataFlow workflow with input/output schemas and Quarkus configuration, ready to run locally or deploy to OpenShift.
+
+The skill uses a companion context file ([orchestrator-workflow.goosehints](skills/orchestrator-workflow.goosehints)) that provides ServerlessWorkflow spec reference, a working example, and RHDH integration patterns. The recipe reads this file at runtime so goose knows the exact format to generate.
+
+### Generate the workflow project
+
+```bash
+goose run \
+  --recipe skills/create-orchestrator-workflow.yaml \
+  --params project_name=my_workflow \
+  --params workflow_id=my-workflow \
+  --params "workflow_description=A workflow that provisions an OCP project" \
+  --no-session
+```
+
+Goose reads the orchestrator reference context, then generates a complete project:
+
+```
+my_workflow/
+└── src/main/resources/
+    ├── application.properties
+    ├── my-workflow.sw.yaml
+    └── schemas/
+        ├── my-workflow__main-schema.json
+        └── workflow-output-schema.json
+```
+
+### What gets generated
+
+| File | Purpose |
+|------|---------|
+| `my-workflow.sw.yaml` | ServerlessWorkflow definition (specVersion 0.8) with states, functions, and transitions |
+| `my-workflow__main-schema.json` | Input schema -- the RHDH Orchestrator UI auto-generates a form from this |
+| `workflow-output-schema.json` | Standard output schema for result display in RHDH |
+| `application.properties` | Quarkus/Kogito runtime configuration |
+
+### Run locally
+
+Requires [`kn-workflow` v1.36+](https://mirror.openshift.com/pub/cgw/serverless-logic/1.36.0/):
+
+```bash
+cd my_workflow && kn-workflow quarkus run
+```
+
+### Build and deploy to OpenShift
+
+```bash
+../scripts/build.sh --image=quay.io/<your-org>/my-workflow --deploy
+```
 
 ---
 
@@ -321,7 +359,7 @@ If the on-prem model's context window is too small for complex tasks, Llama Stac
 GOOSE_MODEL="gemini/models/gemini-2.5-flash" goose run --no-session --text "your task"
 ```
 
-The request still goes through the local proxy to Llama Stack, which proxies to the configured Gemini inference provider. No API keys are needed in the workspace -- Llama Stack handles provider authentication server-side.
+The request goes directly to Llama Stack, which routes to the configured Gemini inference provider. No API keys are needed in the workspace -- Llama Stack handles provider authentication server-side.
 
 ---
 
@@ -336,8 +374,7 @@ If you want to use your own container image or fork:
 git clone https://github.com/rrbanda/mcp-skills.git
 cd mcp-skills
 
-# Edit devfile.yaml: change the image and LLAMASTACK_URL
-# Edit llm_proxy.py is NOT needed -- it reads LLAMASTACK_URL from the env var
+# Edit devfile.yaml: change the image and OPENAI_HOST (Llama Stack URL)
 
 # Build for linux/amd64 (OpenShift clusters are x86_64)
 podman build --platform linux/amd64 -t quay.io/<your-org>/mcp-skills:latest .
@@ -352,8 +389,10 @@ components:
     container:
       image: quay.io/<your-org>/mcp-skills:latest
       env:
-        - name: LLAMASTACK_URL
+        - name: OPENAI_HOST
           value: https://<your-llamastack-host>
+        - name: OPENAI_BASE_PATH
+          value: v1/chat/completions
         - name: GOOSE_MODEL
           value: <your-model-id>
 ```
@@ -368,6 +407,8 @@ Then push to your fork and create the workspace from your fork URL.
 |-------|------|--------------|
 | Create FastMCP Server | [skills/create-fastmcp-server.yaml](skills/create-fastmcp-server.yaml) | Generate an MCP server from any REST API using `.goosehints` for context |
 | Deploy FastMCP Server | [skills/deploy-fastmcp-server.yaml](skills/deploy-fastmcp-server.yaml) | Build, containerize, and deploy an MCP server to OpenShift |
+| Create Orchestrator Workflow | [skills/create-orchestrator-workflow.yaml](skills/create-orchestrator-workflow.yaml) | Scaffold an RHDH Orchestrator workflow project (SonataFlow) with schemas and config |
+| Deploy Agent Sandbox | [skills/deploy-agent-sandbox.yaml](skills/deploy-agent-sandbox.yaml) | Deploy a secure Agent Sandbox environment on OpenShift with Kata VM isolation, NetworkPolicy, and WarmPool |
 
 ### Adding Your Own Skills
 
@@ -376,6 +417,7 @@ Skills are YAML recipe files that guide goose through multi-step tasks. See the 
 Key patterns from this repo:
 - **Skill** = reusable workflow (e.g., "how to build an MCP server")
 - **`.goosehints`** = project-specific context (e.g., API endpoints, auth patterns)
+- **Recipe + companion context file** -- for domain-heavy skills, pair a recipe with a `.goosehints` file that holds spec references, working examples, and common-mistake guardrails. The recipe reads the context file at runtime (see `create-orchestrator-workflow.yaml` + `orchestrator-workflow.goosehints` for this pattern)
 - **Explicit tool lists** in skill `instructions` prevent the LLM from hallucinating tool names
 - **Step-by-step prompts** ensure on-prem models follow the full workflow
 
@@ -387,9 +429,10 @@ Key patterns from this repo:
 |------|---------|
 | [Dockerfile](Dockerfile) | Custom Dev Spaces image with goose CLI, FastMCP, VS Code extension |
 | [devfile.yaml](devfile.yaml) | Dev Spaces workspace definition (image, env vars, commands) |
-| [llm_proxy.py](llm_proxy.py) | Starlette proxy fixing Llama Stack Responses API / goose streaming incompatibilities |
 | [.goosehints](.goosehints) | Project context for goose (API endpoints, auth, response format) |
 | [skills/](skills/) | Goose recipes for reusable workflows |
+| [skills/create-orchestrator-workflow.yaml](skills/create-orchestrator-workflow.yaml) | Goose recipe for scaffolding orchestrator workflows |
+| [skills/orchestrator-workflow.goosehints](skills/orchestrator-workflow.goosehints) | Domain context for ServerlessWorkflow spec, project patterns, and RHDH integration |
 | devspaces_mcp_server.py | AI-generated FastMCP server for DevWorkspace management (created by goose) |
 | [requirements.txt](requirements.txt) | Python dependencies for the MCP server |
 
@@ -406,20 +449,16 @@ If `OPENAI_HOST` or `OPENAI_BASE_PATH` are empty, the devfile env vars weren't a
 `OPENAI_HOST` is not set -- goose defaults to `https://api.openai.com`. Fix:
 
 ```bash
-export OPENAI_HOST=http://localhost:9090
+export OPENAI_HOST=https://llamastack-llamastack.apps.<your-cluster-domain>
 ```
 
 ### goose says "Authentication error: 401"
 
-Same root cause -- requests going to OpenAI.com with the dummy key. Verify `OPENAI_HOST` points to `http://localhost:9090`.
+Same root cause -- requests going to OpenAI.com with the dummy key. Verify `OPENAI_HOST` points to your Llama Stack URL.
 
 ### "Permission denied" writing goose logs
 
 Set `XDG_STATE_HOME=/tmp/.local/state` (already in devfile).
-
-### Streaming parse errors from the LLM
-
-The LLM proxy handles known issues. If new errors appear, check proxy logs and look at `fix_sse_event()` in [llm_proxy.py](llm_proxy.py).
 
 ### goose hallucinates tool names (open_file, apply_patch)
 

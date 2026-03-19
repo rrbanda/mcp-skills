@@ -1,0 +1,261 @@
+= Setting Up the Environment
+include::_attributes.adoc[]
+
+== Overview
+
+We'll deploy the full Agent Sandbox environment using a Goose AI recipe. This demonstrates production-grade infrastructure-as-code via AI agent.
+
+== Option A: Using the Goose Recipe (Recommended)
+
+Run the deploy-agent-sandbox recipe:
+
+[.console-input]
+[source,bash]
+----
+goose run --recipe skills/deploy-agent-sandbox.yaml
+----
+
+TIP: The recipe defaults to namespace `{sandbox-namespace}` and 3 warm pool replicas. Override with `--params`: `goose run --recipe skills/deploy-agent-sandbox.yaml --params namespace=my-ns --params warmpool_replicas=5`
+
+The recipe performs the following steps:
+
+* Installs the agent-sandbox operator (if not already present)
+* Creates the target namespace and grants OpenShift SCC permissions
+* Deploys a SandboxTemplate with Kata VM isolation
+* Applies a NetworkPolicy for deny-all egress (DNS only)
+* Creates a WarmPool with 3 replicas for instant sandbox allocation
+* Verifies CRDs, controller, RuntimeClass, and warm pool pods
+
+== Option B: Manual Setup
+
+For those who prefer scripts, run:
+
+[.console-input]
+[source,bash]
+----
+./demo/setup.sh
+----
+
+Or perform the steps manually:
+
+. Install agent-sandbox operator and extensions:
++
+[.console-input]
+[source,bash]
+----
+oc apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/download/{agent-sandbox-version}/manifest.yaml
+oc apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/download/{agent-sandbox-version}/extensions.yaml
+----
+
+. Create the namespace:
++
+[.console-input]
+[source,bash]
+----
+oc create namespace {sandbox-namespace}
+----
+
+. **(OpenShift only)** Grant SCC permissions so the controller can create pods with the specified `runAsUser`:
++
+[.console-input]
+[source,bash]
+----
+oc adm policy add-scc-to-user anyuid -z agent-sandbox-controller -n agent-sandbox-system
+oc adm policy add-scc-to-user anyuid -z default -n {sandbox-namespace}
+----
++
+NOTE: On vanilla Kubernetes this step is not needed. OpenShift's `restricted-v2` SCC rejects pods whose `runAsUser` falls outside the namespace's auto-assigned UID range.
+
+. Apply the SandboxTemplate:
++
+[.console-input]
+[source,bash]
+----
+oc apply -f demo/sandbox-template.yaml
+----
+
+. Apply the WarmPool:
++
+[.console-input]
+[source,bash]
+----
+oc apply -f demo/sandbox-warmpool.yaml
+----
+
+. Apply the NetworkPolicy for egress isolation:
++
+[.console-input]
+[source,bash]
+----
+oc apply -f demo/sandbox-networkpolicy.yaml
+----
++
+NOTE: The SandboxTemplate defines a `networkPolicy` section, but the agent-sandbox controller (v0.2.1) does not auto-create Kubernetes NetworkPolicy resources from it. This manual step ensures the deny-all egress (DNS only) policy is enforced.
+
+== Verify the Deployment
+
+Run these commands to verify everything is working:
+
+[.console-input]
+[source,bash]
+----
+oc get crd | grep agents
+----
+
+[.console-output]
+[source,bash]
+----
+sandboxclaims.extensions.agents.x-k8s.io
+sandboxes.agents.x-k8s.io
+sandboxtemplates.extensions.agents.x-k8s.io
+sandboxwarmpools.extensions.agents.x-k8s.io
+----
+
+[.console-input]
+[source,bash]
+----
+oc get pods -n agent-sandbox-system
+----
+
+[.console-output]
+[source,bash]
+----
+NAME                                        READY   STATUS    RESTARTS   AGE
+agent-sandbox-controller-xxxxxxxxxx-xxxxx   1/1     Running   0          5m
+----
+
+[.console-input]
+[source,bash]
+----
+oc get runtimeclass kata-remote
+----
+
+[.console-output]
+[source,bash]
+----
+NAME          HANDLER       AGE
+kata-remote   kata-remote   10m
+----
+
+[.console-input]
+[source,bash]
+----
+oc get pod -n {sandbox-namespace}
+----
+
+[.console-output]
+[source,bash]
+----
+NAME                       READY   STATUS    RESTARTS   AGE
+agent-sandbox-pool-xxxxx   1/1     Running   0          2m
+agent-sandbox-pool-yyyyy   1/1     Running   0          2m
+agent-sandbox-pool-zzzzz   1/1     Running   0          2m
+----
+
+NOTE: Warm pool pods may take 3-5 minutes to become Ready when using Kata VMs (`kata-remote`), as each pod provisions a dedicated EC2 instance.
+
+== Understanding the SandboxTemplate
+
+The SandboxTemplate defines the security posture for each sandbox pod:
+
+[source,yaml]
+----
+include::example$sandbox-template.yaml[]
+----
+
+=== Core Settings (all environments)
+
+[cols="2,3"]
+|===
+| Setting | Purpose
+
+| `automountServiceAccountToken: false`
+| Prevents Kubernetes API access — the sandbox cannot read secrets or call the cluster API.
+
+| `runAsNonRoot: true` / `runAsUser: 10001`
+| Runs as non-root user. On OpenShift, granting `anyuid` SCC is required because the hardcoded UID 10001 falls outside the namespace's auto-assigned range.
+
+| `resources.limits`
+| CPU and memory caps per sandbox (2 CPU, 4Gi memory in this template).
+
+| `networkPolicy`
+| Deny-all egress except DNS (ports 53). Ingress only from the workspace namespace. Prevents data exfiltration and lateral movement.
+|===
+
+NOTE: As of agent-sandbox v0.2.1, the controller does **not** auto-create Kubernetes NetworkPolicy resources from the template's `networkPolicy` section. You must apply `demo/sandbox-networkpolicy.yaml` separately (step 6 above). This may be fixed in a future release.
+
+=== Environment-Specific Settings
+
+What changes depending on where your cluster runs:
+
+[cols="2,1,1,1"]
+|===
+| Setting | AWS (peer-pods) | Bare metal | GKE
+
+| `runtimeClassName`
+| `kata-remote`
+| `kata`
+| `gvisor`
+
+| `anyuid` SCC grant
+| Required
+| Required
+| N/A (not OpenShift)
+
+| `io.katacontainers.config.hypervisor.machine_type`
+| **Required** (e.g., `t3.medium`)
+| Remove this annotation
+| Remove this annotation
+
+| `io.katacontainers.config.hypervisor.default_vcpus`
+| Keep
+| Keep
+| Remove
+
+| `io.katacontainers.config.hypervisor.default_memory`
+| Keep
+| Keep
+| Remove
+
+| `io.kubernetes.cri-o.userns-mode`
+| Keep
+| Keep
+| Remove
+
+| Pod startup time
+| 3-5 min (EC2 provisioning)
+| 10-30 sec (local VM)
+| < 5 sec
+|===
+
+IMPORTANT: The `demo/sandbox-template.yaml` file ships configured for **AWS peer-pods**. If you are running on bare metal, edit it to change `runtimeClassName` to `kata` and remove the `machine_type` annotation.
+
+== Open the DevSpaces Workspace
+
+Open the workspace from the devfile URL:
+
+[.console-input]
+[source,text]
+----
+https://<devspaces-url>/#{github-repo}.git
+----
+
+Replace `<devspaces-url>` with your DevSpaces instance URL (e.g., `devspaces.apps.your-cluster.example.com`).
+
+Wait for the workspace to start. Verify Goose is available:
+
+[.console-input]
+[source,bash]
+----
+goose --version
+----
+
+[.console-output]
+[source,bash]
+----
+goose version 0.x.x
+----
+
+== Next
+
+Continue to xref:05-goose-devspaces.adoc[Module 5: Your First Goose Session] to configure Goose and run your first AI-assisted coding session.

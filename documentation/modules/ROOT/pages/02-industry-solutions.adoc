@@ -1,0 +1,143 @@
+= How the Industry Solves It
+include::_attributes.adoc[]
+
+== The Common Pattern
+
+Every major AI platform has converged on the same architecture: isolate execution from planning.
+
+[source,text]
+----
+Developer/Agent Environment -> code exec -> Execution Sandbox (isolated, no credentials, network restricted, disposable)
+----
+
+The agent plans and generates code in a trusted environment, but *executes* inside a sandbox with no access to credentials, secrets, or unrestricted network.
+
+== Anthropic (Claude Code)
+
+Anthropic uses two-layer isolation:
+
+* *Filesystem* — bubblewrap on Linux, Seatbelt on macOS
+* *Network* — proxy restricting outbound connections
+
+This approach reduced permission prompts by 84%. The runtime is open source: link:https://github.com/anthropic-experimental/sandbox-runtime[anthropic-experimental/sandbox-runtime].
+
+== Kubernetes Community (Agent Sandbox)
+
+The link:https://github.com/kubernetes-sigs/agent-sandbox[kubernetes-sigs/agent-sandbox] project is a **Kubernetes SIG Apps** community effort — not owned by any single vendor. Google engineers were key contributors and link:https://opensource.googleblog.com/2025/11/unleashing-autonomous-ai-agents-why-kubernetes-needs-a-new-standard-for-agent-execution.html[announced it on the Google Open Source Blog], and Google provides GKE integration, but it is an open community project under the CNCF umbrella.
+
+It provides a Sandbox CRD for isolated singleton workloads, supports gVisor and Kata Containers for VM-level isolation, and a WarmPool for sub-second allocation.
+
+*Motivation quote:* "Autonomous AI agents generate and execute untrusted, unverified code."
+
+== GitHub / Microsoft (Copilot)
+
+GitHub uses **GitHub Actions** as the compute sandbox:
+
+* Ephemeral VM per task
+* All work committed as draft PRs — human must approve before merge
+* VS Code terminal sandboxing for local development
+
+== OpenAI (Codex)
+
+OpenAI's *Codex* is an agentic coding platform (CLI, IDE extension, and cloud) that runs tasks inside sandboxed cloud environments. The link:https://platform.openai.com/docs/models/gpt-5.1-codex-max[GPT-5.1-Codex-Max] model supports configurable network controls, allowing enterprises to restrict outbound access per task.
+
+== Cloud Sandbox Providers
+
+Third-party providers offer managed sandbox infrastructure:
+
+[cols="1,2,2"]
+|===
+| Provider | Technology | Cold Start
+
+| E2B
+| Firecracker microVMs
+| <200ms
+
+| Daytona
+| Custom runtime
+| Sub-90ms creation
+
+| Modal
+| gVisor
+| 50k+ concurrent sandboxes
+|===
+
+== Isolation Technologies Comparison
+
+[cols="1,1,1,1,1"]
+|===
+| Technology | Isolation Level | Overhead | Cold Start | Used By
+
+| MicroVMs / Firecracker
+| VM
+| Low
+| ~200ms
+| E2B, AWS Lambda
+
+| gVisor
+| Kernel syscall filtering
+| Low
+| ~100ms
+| Google, Modal
+
+| Kata Containers
+| Lightweight VM
+| Medium
+| ~1–2s
+| OpenShift, Kubernetes
+
+| bubblewrap / Seatbelt
+| Namespace + seccomp
+| Minimal
+| Instant
+| Anthropic
+
+| Hardened Containers
+| Namespace isolation
+| Minimal
+| Instant
+| Docker, Kubernetes default
+
+| WebAssembly
+| WASM runtime
+| Minimal
+| Instant
+| Emerging
+|===
+
+== Try It Yourself
+
+You can inspect the open-source implementations mentioned in this module:
+
+[.console-input]
+[source,bash]
+----
+git clone --depth 1 https://github.com/anthropic-experimental/sandbox-runtime.git /tmp/sandbox-runtime 2>/dev/null; ls -la /tmp/sandbox-runtime 2>/dev/null | head -5
+----
+
+[.console-output]
+[source,bash]
+----
+total 24
+drwxr-xr-x   ...  sandbox-runtime
+drwxr-xr-x   ...  .
+drwxr-xr-x   ...  ..
+-rw-r--r--   ...  README.md
+-rw-r--r--   ...  ...
+----
+
+[.console-input]
+[source,bash]
+----
+git clone --depth 1 https://github.com/kubernetes-sigs/agent-sandbox.git /tmp/agent-sandbox 2>/dev/null; ls /tmp/agent-sandbox
+----
+
+[.console-output]
+[source,bash]
+----
+config  deploy  docs  go.mod  go.sum  pkg  README.md  ...
+----
+
+== Next
+
+Continue to xref:03-architecture.adoc[Module 3: The Architecture] to see how DevSpaces and Agent Sandbox combine for an enterprise solution.

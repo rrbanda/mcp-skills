@@ -1,0 +1,223 @@
+version: 1.0.0
+title: Deploy Secure Agent Sandbox on OpenShift
+description: >
+  Deploy a production-grade Agent Sandbox environment on OpenShift with
+  Kata VM isolation, deny-all NetworkPolicy, SandboxWarmPool, and full
+  verification. Installs the agent-sandbox operator if not present.
+author:
+  contact: rrbanda
+
+activities:
+  - "Verify cluster access and OpenShift version"
+  - "Install agent-sandbox operator if not present"
+  - "Create target namespace and grant SCC"
+  - "Deploy hardened SandboxTemplate"
+  - "Apply NetworkPolicy for egress isolation"
+  - "Create SandboxWarmPool for instant allocation"
+  - "Verify CRDs, controller, RuntimeClass, and warm pool pods"
+  - "Report deployment summary"
+
+instructions: |
+  You are a platform engineer deploying a secure Agent Sandbox environment
+  on OpenShift. Read the companion goosehints file for CRD reference and
+  security rationale.
+
+  ## Available Tools (use ONLY these)
+
+  - `write` — Create or overwrite a file (path, content)
+  - `shell` — Run a shell command (command)
+
+  NEVER call: open_file, apply_patch, read_file, create_file, search,
+  or any tool name not listed above.
+
+  ## Important: Complete ALL steps
+
+  You MUST complete every step below. Do NOT stop after checking prereqs.
+  After each step, immediately proceed to the next one.
+
+  ## Idempotency
+
+  Every command must be safe to run multiple times. Use "2>/dev/null || true"
+  or check-before-create patterns. Never fail on "already exists".
+
+parameters:
+  - key: namespace
+    input_type: string
+    requirement: optional
+    default: "sandbox-devspaces"
+    description: "OpenShift namespace for sandbox resources"
+
+  - key: warmpool_replicas
+    input_type: string
+    requirement: optional
+    default: "3"
+    description: "Number of pre-warmed sandbox pods"
+
+  - key: runtime_class
+    input_type: string
+    requirement: optional
+    default: "kata-remote"
+    description: "RuntimeClass for sandbox pods (kata-remote on AWS, kata on bare metal, gvisor on GKE)"
+
+  - key: sandbox_image
+    input_type: string
+    requirement: optional
+    default: "quay.io/rbrhssa/mcp-skills:latest"
+    description: "Container image for sandbox pods"
+
+extensions:
+  - type: builtin
+    name: developer
+    display_name: Developer
+    timeout: 300
+    bundled: true
+
+prompt: |
+  Deploy a secure Agent Sandbox environment to OpenShift namespace {{ namespace }}.
+  Read the goosehints file first: use `shell` to run: cat skills/agent-sandbox.goosehints
+
+  Execute ALL 8 steps below. Do not stop early.
+
+  **Step 1 — VERIFY CLUSTER ACCESS**
+  Use `shell` to run: oc whoami && oc version
+  Confirm you are logged in and the cluster is reachable.
+  Use `shell` to run: oc get crd sandboxes.agents.x-k8s.io 2>/dev/null && echo "agent-sandbox CRD found" || echo "agent-sandbox NOT installed"
+
+  **Step 2 — INSTALL AGENT-SANDBOX OPERATOR (if needed)**
+  If the CRD was NOT found in Step 1, install it:
+  Use `shell` to run: oc apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/download/v0.2.1/manifest.yaml 2>&1
+  Use `shell` to run: oc apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/download/v0.2.1/extensions.yaml 2>&1
+  Use `shell` to run: sleep 15 && oc get pods -n agent-sandbox-system
+  If the CRD WAS found, skip installation and print "agent-sandbox already installed".
+
+  **Step 3 — CREATE NAMESPACE AND GRANT SCC**
+  Use `shell` to run: oc create namespace {{ namespace }} 2>/dev/null || echo "Namespace {{ namespace }} already exists"
+  Grant SCC so the controller can create pods with the specified runAsUser:
+  Use `shell` to run: oc adm policy add-scc-to-user anyuid -z agent-sandbox-controller -n agent-sandbox-system 2>/dev/null || true
+  Use `shell` to run: oc adm policy add-scc-to-user anyuid -z default -n {{ namespace }} 2>/dev/null || true
+
+  **Step 4 — DEPLOY SANDBOXTEMPLATE**
+  Build the SandboxTemplate YAML based on the runtime_class parameter.
+
+  IMPORTANT: The annotations section changes depending on the runtime:
+  - If runtime_class is "kata-remote" (AWS peer-pods): include ALL four annotations below
+  - If runtime_class is "kata" (bare metal): include only default_vcpus and default_memory (remove machine_type and userns-mode)
+  - If runtime_class is "gvisor" or empty: omit the metadata.annotations section entirely
+
+  Use `write` to create /tmp/sandbox-template.yaml. Copy this YAML exactly, adjusting annotations per the rules above.
+  ```
+  apiVersion: extensions.agents.x-k8s.io/v1alpha1
+  kind: SandboxTemplate
+  metadata:
+    name: secure-agent-sandbox
+    namespace: {{ namespace }}
+  spec:
+    podTemplate:
+      spec:
+        runtimeClassName: {{ runtime_class }}
+        automountServiceAccountToken: false
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 0
+          runAsNonRoot: true
+        containers:
+          - name: agent-sandbox
+            image: {{ sandbox_image }}
+            command: ["/bin/sh", "-c", "sleep infinity"]
+            resources:
+              limits:
+                cpu: "2"
+                memory: 4Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+            env:
+              - name: HOME
+                value: /home/user
+      metadata:
+        annotations:
+          io.katacontainers.config.hypervisor.default_vcpus: "2"
+          io.katacontainers.config.hypervisor.default_memory: "4096"
+          io.katacontainers.config.hypervisor.machine_type: t3.medium
+          io.kubernetes.cri-o.userns-mode: ""
+    networkPolicy:
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: {{ namespace }}
+      egress:
+        - ports:
+            - protocol: UDP
+              port: 53
+            - protocol: TCP
+              port: 53
+  ```
+  Use `shell` to run: oc apply -f /tmp/sandbox-template.yaml
+
+  **Step 5 — APPLY NETWORKPOLICY**
+  The agent-sandbox controller does not auto-create NetworkPolicies from the template (as of v0.2.1).
+  Use `write` to create /tmp/sandbox-networkpolicy.yaml with:
+  ```
+  apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: sandbox-isolation
+    namespace: {{ namespace }}
+  spec:
+    podSelector: {}
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ namespace }}
+    egress:
+      - ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53
+  ```
+  Use `shell` to run: oc apply -f /tmp/sandbox-networkpolicy.yaml 2>&1
+
+  **Step 6 — CREATE SANDBOXWARMPOOL**
+  Use `write` to create /tmp/sandbox-warmpool.yaml with:
+  ```
+  apiVersion: extensions.agents.x-k8s.io/v1alpha1
+  kind: SandboxWarmPool
+  metadata:
+    name: agent-sandbox-pool
+    namespace: {{ namespace }}
+  spec:
+    replicas: {{ warmpool_replicas }}
+    sandboxTemplateRef:
+      name: secure-agent-sandbox
+  ```
+  Use `shell` to run: oc apply -f /tmp/sandbox-warmpool.yaml
+
+  **Step 7 — VERIFY DEPLOYMENT**
+  Wait for pods to start, then verify everything:
+  Use `shell` to run: sleep 20 && echo "=== CRDs ===" && oc get crd | grep agents && echo "" && echo "=== Controller ===" && oc get pods -n agent-sandbox-system && echo "" && echo "=== RuntimeClass ===" && (oc get runtimeclass {{ runtime_class }} 2>/dev/null && echo "{{ runtime_class }} available" || echo "WARNING: {{ runtime_class }} not found — sandbox will use default runtime") && echo "" && echo "=== Sandbox Pods ===" && oc get sandbox,pod -n {{ namespace }}
+
+  If any sandbox pods show errors, check logs:
+  Use `shell` to run: oc get events -n {{ namespace }} --sort-by='.lastTimestamp' | tail -10
+
+  **Step 8 — REPORT SUMMARY**
+  Print a deployment summary:
+  - Namespace: {{ namespace }}
+  - SandboxTemplate: secure-agent-sandbox
+  - WarmPool: {{ warmpool_replicas }} replicas
+  - RuntimeClass: {{ runtime_class }}
+  - NetworkPolicy: deny-all egress (DNS only), ingress from {{ namespace }} only
+  - Security: automountServiceAccountToken=false, runAsNonRoot=true
+
+  Then print next steps:
+  - Create a sandbox claim: oc apply -f demo/sandbox-claim.yaml
+  - Execute in sandbox: demo/sandbox-exec.sh python3 -c "print('hello from sandbox')"
+  - View sandbox pods: oc get sandbox -n {{ namespace }}

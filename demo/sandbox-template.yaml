@@ -1,0 +1,65 @@
+apiVersion: extensions.agents.x-k8s.io/v1alpha1
+kind: SandboxTemplate
+metadata:
+  name: secure-agent-sandbox
+  namespace: sandbox-devspaces
+spec:
+  podTemplate:
+    spec:
+      # ── Runtime isolation ──────────────────────────────────────────────
+      # Choose ONE based on your environment:
+      #   kata-remote  → OpenShift on AWS (peer-pods, each sandbox = dedicated EC2 VM)
+      #   kata         → OpenShift on bare metal (each sandbox = local lightweight VM)
+      #   gvisor       → GKE (kernel-level syscall filtering)
+      # Remove this field entirely to use the default container runtime (runc).
+      runtimeClassName: kata-remote
+
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 0
+        runAsNonRoot: true
+      containers:
+        - name: agent-sandbox
+          image: quay.io/rbrhssa/mcp-skills:latest
+          command: ["/bin/sh", "-c", "sleep infinity"]
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: HOME
+              value: /home/user
+    metadata:
+      annotations:
+        # ── Kata hypervisor tuning (only used when runtimeClassName is kata or kata-remote) ──
+        io.katacontainers.config.hypervisor.default_vcpus: "2"
+        io.katacontainers.config.hypervisor.default_memory: "4096"
+        # ── AWS peer-pods ONLY (remove on bare metal / GKE) ──
+        # Forces the EC2 instance type. Required because the peer-pods AMI uses TPM 2.0,
+        # which older instance families (t2) do not support.
+        io.katacontainers.config.hypervisor.machine_type: t3.medium
+        io.kubernetes.cri-o.userns-mode: ""
+
+  # NetworkPolicy: deny all except DNS and ingress from DevSpaces workspace pods.
+  # NOTE: As of agent-sandbox v0.2.1, this section is stored in the template but
+  # NOT auto-applied as a Kubernetes NetworkPolicy. You must also apply
+  # demo/sandbox-networkpolicy.yaml separately. See Module 4 in the workshop.
+  networkPolicy:
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: sandbox-devspaces
+    egress:
+      - ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53

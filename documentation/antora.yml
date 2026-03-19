@@ -1,0 +1,7 @@
+name: secure-ai-agents-workshop
+version: v1.0
+display_version: v1.0
+prerelease: false
+nav:
+  - modules/ROOT/nav.adoc
+start_page: ROOT:index.adoc

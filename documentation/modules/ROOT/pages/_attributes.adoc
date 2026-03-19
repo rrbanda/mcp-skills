@@ -1,0 +1,9 @@
+// Common attributes for the Secure AI Coding Agents workshop
+:keywords: OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose
+:experimental:
+
+// Antora attributes for workshop customization
+:sandbox-namespace: sandbox-devspaces
+:sandbox-image: quay.io/rbrhssa/mcp-skills:latest
+:agent-sandbox-version: v0.2.1
+:github-repo: https://github.com/rrbanda/mcp-skills

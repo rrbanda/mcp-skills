@@ -1,0 +1,117 @@
+= Secure AI Coding Agents on OpenShift
+include::_attributes.adoc[]
+
+Welcome to the **Secure AI Coding Agents on OpenShift** workshop.
+
+In this hands-on workshop, you will learn why AI coding agents need sandboxed execution, how the industry approaches this problem, and how to build a production-grade solution using **Red Hat OpenShift Dev Spaces** and **Kubernetes Agent Sandbox** with **Kata VM isolation**.
+
+== What You Will Learn
+
+By the end of this workshop, you will:
+
+* Understand the security risks of AI agents executing code with developer-level permissions
+* Know how Anthropic, Google, GitHub, and OpenAI each solve the sandboxing problem
+* Deploy a secure Agent Sandbox environment on OpenShift using a Goose AI recipe
+* Use Goose (an open-source AI coding agent) inside a Dev Spaces workspace
+* Prove that sandbox isolation blocks credential theft, data exfiltration, and API access
+* Generate, deploy, and test an MCP server on OpenShift — end to end
+
+== Workshop Flow
+
+This workshop follows a *Why -> What -> How -> Do* progression:
+
+[cols="1,3"]
+|===
+| Module | Topic
+
+| 1. The Problem
+| Why AI coding agents need sandboxes — real incidents and risks
+
+| 2. Industry Solutions
+| How Anthropic, Google, GitHub, and others solve this
+
+| 3. Architecture
+| DevSpaces + Agent Sandbox on OpenShift — the enterprise solution
+
+| 4. Setup
+| Deploy the sandbox environment using a Goose recipe
+
+| 5. First Goose Session
+| Configure and run an AI coding agent in Dev Spaces
+
+| 6. Secure Execution
+| Prove sandbox isolation — blocked secrets, blocked network, disposable pods
+
+| 7. Build MCP Server
+| Generate and deploy an MCP server using Goose recipes
+
+| 8. Test MCP Server
+| Test the deployed MCP server end-to-end with Goose
+
+| 9. Bonus -- Orchestrator Workflows
+| Scaffold an RHDH Orchestrator workflow using a Goose recipe
+
+| 10. Wrap-up
+| Summary, enterprise value, and next steps
+|===
+
+== Prerequisites
+
+You need:
+
+* Access to an **OpenShift 4.14+** cluster with `cluster-admin` permissions
+* **Red Hat OpenShift Dev Spaces** installed on the cluster
+* The `oc` CLI installed on your local machine (or use the terminal inside Dev Spaces)
+* A web browser
+
+=== Verify Cluster Access
+
+[.console-input]
+[source,bash]
+----
+oc whoami
+----
+
+[.console-output]
+[source,bash]
+----
+admin
+----
+
+[.console-input]
+[source,bash]
+----
+oc version
+----
+
+[.console-output]
+[source,bash]
+----
+Client Version: 4.14.x
+Server Version: 4.14.x
+Kubernetes Version: v1.28.x
+----
+
+You should see your OpenShift server version (4.14 or later).
+
+=== Verify Dev Spaces
+
+[.console-input]
+[source,bash]
+----
+oc get pods -n openshift-devspaces | head -5
+----
+
+[.console-output]
+[source,bash]
+----
+NAME                                  READY   STATUS    RESTARTS   AGE
+devspaces-operator-xxxxx-yyyyy        1/1     Running   0          2d
+postgres-xxxxx-yyyyy                  1/1     Running   0          2d
+----
+
+You should see Dev Spaces operator pods running.
+
+== Ready?
+
+Let's start with xref:01-the-problem.adoc[Module 1: The Problem].

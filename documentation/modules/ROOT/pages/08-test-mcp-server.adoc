@@ -1,0 +1,167 @@
+= Test the MCP Server
+include::_attributes.adoc[]
+
+In this module, you verify the deployed MCP server is working, register it as a Goose extension, and use Goose to manage DevSpaces workspaces through the MCP tools.
+
+== Verify the Endpoint
+
+First, confirm the MCP server is reachable:
+
+[.console-input]
+[source,bash]
+----
+MCP_HOST=$(oc get route devspaces-mcp -n admin-devspaces -o jsonpath='{.spec.host}')
+echo "MCP endpoint: https://$MCP_HOST/mcp"
+----
+
+Test the endpoint with curl. The `/mcp` path serves the Streamable HTTP transport:
+
+[.console-input]
+[source,bash]
+----
+curl -sk -X POST https://$MCP_HOST/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python3 -m json.tool
+----
+
+[.console-output]
+[source,json]
+----
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "protocolVersion": "2024-11-05",
+        "capabilities": {
+            "tools": {}
+        },
+        "serverInfo": {
+            "name": "devspaces-mcp",
+            "version": "0.1.0"
+        }
+    }
+}
+----
+
+This confirms the MCP server is alive and responds with the MCP protocol handshake.
+
+== List Available Tools
+
+Ask the server what tools it exposes:
+
+[.console-input]
+[source,bash]
+----
+curl -sk -X POST https://$MCP_HOST/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | python3 -m json.tool
+----
+
+You should see a list of tools like `list_workspaces`, `get_workspace`, `create_workspace`, `delete_workspace`, `start_workspace`, and `stop_workspace` — each with their parameter schemas and descriptions.
+
+== Register as a Goose Extension
+
+Now connect Goose to the deployed MCP server. Run the configuration command:
+
+[.console-input]
+[source,bash]
+----
+goose configure
+----
+
+Follow the interactive menu:
+
+1. Select **Add Extension**
+2. Choose **Remote (SSE/Streamable HTTP)**
+3. Enter the server URL: `https://<MCP_HOST>/mcp` (use the hostname from the previous step)
+4. Name it: `DevSpaces MCP`
+5. Confirm to save
+
+Verify the extension is registered:
+
+[.console-input]
+[source,bash]
+----
+goose configure
+----
+
+You should see `DevSpaces MCP` in the list of configured extensions.
+
+== Use the MCP Tools with Goose
+
+Start a new Goose session. The MCP server tools are now available:
+
+[.console-input]
+[source,bash]
+----
+goose session
+----
+
+Try these prompts in sequence:
+
+*Prompt 1 — List workspaces:*
+
+[source,text]
+----
+List all DevSpaces workspaces in the admin-devspaces namespace
+----
+
+Goose calls the `list_workspaces` tool on the MCP server. You should see workspace names, phases (Running/Stopped), and namespaces returned.
+
+*Prompt 2 — Get workspace details:*
+
+[source,text]
+----
+Get the details for workspace <name> in admin-devspaces
+----
+
+Replace `<name>` with a workspace name from the previous result. Goose calls the `get_workspace` tool and returns the IDE URL, creation time, and phase.
+
+*Prompt 3 — Stop a workspace:*
+
+[source,text]
+----
+Stop workspace <name> in admin-devspaces
+----
+
+Goose calls the `stop_workspace` tool, which PATCHes the DevWorkspace to set `started: false`.
+
+Each interaction follows the same flow:
+
+[source,text]
+----
+You (prompt) → Goose (LLM reasoning) → MCP tool call → MCP Server (HTTP) → DevSpaces API → Response → Goose (formats answer) → You
+----
+
+== The Full Picture
+
+Step back and look at what you built in this workshop:
+
+[source,text]
+----
+OpenShift Cluster
+├── DevSpaces Workspace
+│   ├── Che Code IDE (your editor)
+│   ├── Goose agent (AI coding assistant)
+│   │   ├── Planning: runs in LLM context (safe)
+│   │   ├── Execution: delegates to Agent Sandbox (isolated)
+│   │   └── MCP: calls DevSpaces MCP Server (tools)
+│   └── /projects (persistent source code)
+│
+├── Agent Sandbox Pod (Kata VM)
+│   ├── No credentials, no network, no K8s API
+│   ├── Disposable — replaced from WarmPool
+│   └── Code execution happens here
+│
+├── DevSpaces MCP Server (Deployment + Route)
+│   └── Wraps DevWorkspace API as MCP tools
+│
+└── SandboxWarmPool
+    └── 3 pre-warmed pods ready for instant allocation
+----
+
+Every component runs on-premises on your OpenShift cluster. No code or credentials leave the network. The AI agent has full coding capabilities with enterprise-grade security boundaries.
+
+== Next
+
+Continue to xref:09-orchestrator-workflow.adoc[Module 9: Bonus -- Orchestrator Workflows] to scaffold an RHDH Orchestrator workflow, or skip to xref:10-wrapup.adoc[Module 10: Wrap-up and Next Steps] for a summary and cleanup.

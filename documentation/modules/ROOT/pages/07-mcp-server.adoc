@@ -1,0 +1,236 @@
+= Build and Deploy an MCP Server
+include::_attributes.adoc[]
+
+== What is MCP?
+
+The *Model Context Protocol* (MCP) is an open standard that lets AI agents connect to external tools and data sources. Instead of hard-coding integrations, agents discover and invoke tools dynamically at runtime.
+
+An MCP server exposes three types of capabilities:
+
+[cols="1,3"]
+|===
+| Capability | Description
+
+| *Tools*
+| Functions the agent can call — e.g., `list_workspaces()`, `create_workspace()`. Each tool has typed parameters and a docstring that the LLM reads to decide when to use it.
+
+| *Resources*
+| Read-only data the agent can access — files, database records, configuration.
+
+| *Prompts*
+| Reusable prompt templates the agent can invoke.
+|===
+
+In this module, we build an MCP server that wraps the *DevSpaces REST API* as tools. Once deployed, Goose can manage DevSpaces workspaces by calling these tools.
+
+== How .goosehints Drives Generation
+
+The `create-fastmcp-server` recipe reads `.goosehints` to discover the API it should wrap. The goosehints file defines endpoints, authentication patterns, and payload shapes:
+
+[.console-input]
+[source,bash]
+----
+cat .goosehints | head -30
+----
+
+Key sections the recipe uses:
+
+* *API base path* — `/apis/workspace.devfile.io/v1alpha2`
+* *Endpoints* — List, Get, Create, Delete, Start, Stop workspaces
+* *Auth pattern* — Bearer token via `oc whoami -t`
+* *Response format* — Compact dicts with `name`, `namespace`, `phase`, `mainUrl`
+
+The recipe translates each REST endpoint into an `@mcp.tool` function, preserving the auth, error handling, and response format from the goosehints.
+
+== Generate the MCP Server
+
+[.console-input]
+[source,bash]
+----
+goose run --recipe skills/create-fastmcp-server.yaml
+----
+
+TIP: The recipe defaults to output file `mcp_server.py` and server name `MCP Server`. Override with: `goose run --recipe skills/create-fastmcp-server.yaml --params output_filename=devspaces_mcp.py --params server_name=DevSpaces`
+
+The recipe performs these steps:
+
+1. Reads `.goosehints` to discover the API
+2. Generates a FastMCP server Python file with one tool per endpoint
+3. Creates `requirements.txt`
+4. Validates imports
+5. Runs a smoke test against the live API
+
+== Review the Generated Code
+
+Examine the generated server structure:
+
+[.console-input]
+[source,bash]
+----
+cat mcp_server.py
+----
+
+The generated code follows this pattern:
+
+[source,python]
+----
+from fastmcp import FastMCP
+import httpx, os, subprocess, json
+
+mcp = FastMCP("devspaces-mcp")
+
+# --- Shared helpers ---
+
+def _get_token(token: str | None = None) -> str:
+    """Auto-detect OpenShift token from env or CLI."""
+    if token:
+        return token
+    env_token = os.environ.get("OPENSHIFT_TOKEN")
+    if env_token:
+        return env_token
+    return subprocess.check_output(["oc", "whoami", "-t"], text=True).strip()
+
+API_SERVER = subprocess.check_output(
+    ["oc", "whoami", "--show-server"], text=True
+).strip()
+BASE_URL = f"{API_SERVER}/apis/workspace.devfile.io/v1alpha2"
+
+# --- Tools (one per REST endpoint) ---
+
+@mcp.tool
+async def list_workspaces(namespace: str, token: str | None = None) -> list[dict]:
+    """List all DevSpaces workspaces in a namespace."""
+    headers = {"Authorization": f"Bearer {_get_token(token)}"}
+    async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+        resp = await client.get(
+            f"{BASE_URL}/namespaces/{namespace}/devworkspaces",
+            headers=headers,
+        )
+        resp.raise_for_status()
+        items = resp.json().get("items", [])
+        return [
+            {
+                "name": w["metadata"]["name"],
+                "namespace": w["metadata"]["namespace"],
+                "phase": w.get("status", {}).get("phase", "Unknown"),
+            }
+            for w in items
+        ]
+
+# ... additional tools for get, create, delete, start, stop ...
+
+if __name__ == "__main__":
+    mcp.run()
+----
+
+Key patterns to note:
+
+* `@mcp.tool` decorator exposes each function as an MCP tool
+* Docstrings are required — the LLM reads them to decide when to call each tool
+* Token auto-detection lets tools work without passing credentials every time
+* Async HTTP via `httpx.AsyncClient` for non-blocking calls
+* Compact response dicts — only essential fields, not full Kubernetes objects
+
+Verify the generated requirements:
+
+[.console-input]
+[source,bash]
+----
+cat requirements.txt
+----
+
+[.console-output]
+[source,bash]
+----
+fastmcp
+httpx
+----
+
+== Deploy to OpenShift
+
+Use the deploy recipe to build, push, and deploy the MCP server:
+
+[.console-input]
+[source,bash]
+----
+goose run --recipe skills/deploy-fastmcp-server.yaml \
+  --params server_file=mcp_server.py \
+  --params namespace=admin-devspaces \
+  --params image_name=devspaces-mcp
+----
+
+The deploy recipe performs these steps:
+
+1. Copies the server file and requirements to a `deploy/` directory
+2. Changes the transport from stdio to `streamable-http` (so the server listens on HTTP instead of stdin/stdout)
+3. Generates a Dockerfile based on `python:3.11-slim`
+4. Builds a container image using `oc new-build` / `oc start-build`
+5. Creates a Deployment, Service, and Route via `oc apply`
+6. Verifies the pod is running
+
+== Verify the Deployment
+
+[.console-input]
+[source,bash]
+----
+oc get pods -l app=devspaces-mcp -n admin-devspaces
+----
+
+[.console-output]
+[source,bash]
+----
+NAME                              READY   STATUS    RESTARTS   AGE
+devspaces-mcp-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
+----
+
+[.console-input]
+[source,bash]
+----
+MCP_HOST=$(oc get route devspaces-mcp -n admin-devspaces -o jsonpath='{.spec.host}')
+echo "MCP server URL: https://$MCP_HOST/mcp"
+----
+
+[.console-output]
+[source,bash]
+----
+MCP server URL: https://devspaces-mcp-admin-devspaces.apps.cluster.example.com/mcp
+----
+
+Quick health check — the `/mcp` endpoint should respond with an MCP protocol message:
+
+[.console-input]
+[source,bash]
+----
+curl -sk https://$MCP_HOST/mcp | head -1
+----
+
+[.console-output]
+[source,bash]
+----
+event: message
+----
+
+== Troubleshooting
+
+Common issues and how to resolve them:
+
+[cols="2,3"]
+|===
+| Symptom | Fix
+
+| *Build fails* — `pip install` error
+| Check `requirements.txt` is present in `deploy/` dir. Run `oc logs bc/devspaces-mcp -n admin-devspaces` to see build logs.
+
+| *Pod CrashLoopBackOff*
+| Check logs: `oc logs -l app=devspaces-mcp -n admin-devspaces --tail=30`. Common cause: wrong port or missing environment variable.
+
+| *Route returns 503*
+| The pod may still be starting. Wait 30 seconds and retry. Also verify the Service selector matches: `oc get svc devspaces-mcp -n admin-devspaces -o yaml`.
+
+| *ImagePullBackOff*
+| The build may not have completed. Check: `oc get builds -n admin-devspaces`. Re-trigger with: `oc start-build devspaces-mcp --from-dir=deploy --follow -n admin-devspaces`.
+|===
+
+== Next
+
+Continue to xref:08-test-mcp-server.adoc[Module 8: Test the MCP Server] to verify the endpoint and use the MCP tools with Goose.

@@ -1,0 +1,191 @@
+= Bonus: Orchestrator Workflows
+include::_attributes.adoc[]
+
+This bonus module demonstrates another powerful use of Goose recipes: scaffolding enterprise workflows for the *Red Hat Developer Hub (RHDH) Orchestrator*.
+
+== What is the RHDH Orchestrator?
+
+The RHDH Orchestrator is a plugin for Red Hat Developer Hub that provides a visual workflow engine for automating multi-step enterprise processes — onboarding, provisioning, approvals, deployments, and more. It is backed by:
+
+* *CNCF ServerlessWorkflow* — an open specification for defining workflows as YAML/JSON
+* *SonataFlow / Quarkus* — the runtime that executes the workflows on OpenShift
+
+Workflows appear in the RHDH UI with auto-generated input forms (from JSON Schema) and structured result displays.
+
+== What is ServerlessWorkflow?
+
+ServerlessWorkflow (spec version 0.8) defines workflows declaratively. Key concepts:
+
+[cols="1,3"]
+|===
+| Concept | Description
+
+| *States*
+| Steps in the workflow — `operation`, `switch`, `sleep`, `parallel`, `inject`, `forEach`, `callback`
+
+| *Functions*
+| Reusable actions — `custom` (Java/sysout), `expression` (jq data transform), `rest` (external API)
+
+| *Transitions*
+| Flow control between states — `transition: NextState` or `end: true`
+
+| *Data input/output schemas*
+| JSON Schemas that define the workflow's input form and result structure
+|===
+
+A minimal workflow definition looks like this:
+
+[source,yaml]
+----
+id: hello-world
+version: "1.0"
+specVersion: "0.8"
+name: "Hello World"
+description: A simple greeting workflow
+dataInputSchema: schemas/hello-world__main-schema.json
+extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
+functions:
+  - name: print
+    type: custom
+    operation: sysout
+  - name: successResult
+    type: expression
+    operation: '{
+      "result": {
+      "message": "Hello " + .name,
+      "outputs":[]
+      }
+      }'
+start: "Greet"
+states:
+  - name: Greet
+    type: operation
+    actions:
+      - functionRef:
+          refName: print
+          arguments:
+            message: '"Hello " + .name'
+      - name: setOutput
+        functionRef:
+          refName: successResult
+    end: true
+----
+
+== Generate a Workflow with Goose
+
+Use the `create-orchestrator-workflow` recipe to scaffold a complete project:
+
+[.console-input]
+[source,bash]
+----
+goose run --recipe skills/create-orchestrator-workflow.yaml \
+  --params project_name=hello-workflow \
+  --params workflow_id=hello-world
+----
+
+TIP: Add `--params workflow_description="My first orchestrator workflow"` to set a custom description.
+
+The recipe reads the companion goosehints file (`skills/orchestrator-workflow.goosehints`), which contains the full ServerlessWorkflow spec reference, project structure conventions, and critical rules. It then scaffolds the entire project in seconds.
+
+== Review the Generated Project
+
+Examine the generated structure:
+
+[.console-input]
+[source,bash]
+----
+tree hello-workflow
+----
+
+[.console-output]
+[source,bash]
+----
+hello-workflow/
+└── src/main/resources/
+    ├── application.properties
+    ├── hello-world.sw.yaml
+    └── schemas/
+        ├── hello-world__main-schema.json
+        └── workflow-output-schema.json
+----
+
+=== Workflow Definition
+
+[.console-input]
+[source,bash]
+----
+cat hello-workflow/src/main/resources/hello-world.sw.yaml
+----
+
+The generated `.sw.yaml` follows the ServerlessWorkflow spec with all required fields: `id`, `version`, `specVersion`, `name`, `dataInputSchema`, `extensions`, `functions`, `start`, and `states`.
+
+=== Input Schema
+
+[.console-input]
+[source,bash]
+----
+cat hello-workflow/src/main/resources/schemas/hello-world__main-schema.json
+----
+
+The input schema defines the form that appears in the RHDH Orchestrator UI. Each property becomes a form field with a title, description, type, and optional validation pattern.
+
+=== Output Schema
+
+[.console-input]
+[source,bash]
+----
+cat hello-workflow/src/main/resources/schemas/workflow-output-schema.json
+----
+
+The output schema is standardized across all RHDH Orchestrator workflows. It defines three fields:
+
+* `result.message` — displayed as the main status text in the UI
+* `result.outputs[]` — rendered as a key/value table (supports text, number, link, markdown)
+* `result.nextWorkflows[]` — rendered as clickable links to follow-up workflows
+
+== Key Patterns the Recipe Enforces
+
+The recipe and its companion goosehints enforce critical rules that prevent common mistakes:
+
+[cols="1,2"]
+|===
+| Rule | Why It Matters
+
+| `specVersion: "0.8"`, `version: "1.0"`
+| Required by the SonataFlow runtime — omitting either causes parse failures
+
+| `extensionid` (all lowercase)
+| The spec requires this exact casing — `extensionId` (camelCase) silently fails
+
+| `extensions` before `functions`
+| Field ordering matters in the SonataFlow parser
+
+| jq syntax in arguments (`'"text" + .field'`)
+| Template syntax like `{{.field}}` is not valid jq and causes runtime errors
+
+| Expression functions called without arguments
+| Expression functions read workflow data directly via jq — passing arguments is ignored
+
+| `end: true` on the last state
+| `transition: end` is not valid — `transition` only accepts named states
+|===
+
+== Run Locally (Optional)
+
+If you have the `kn-workflow` CLI installed, you can run the workflow locally:
+
+[.console-input]
+[source,bash]
+----
+cd hello-workflow && kn-workflow quarkus run
+----
+
+NOTE: This requires `kn-workflow` v1.36+ and a container runtime (Podman or Docker). The first run pulls the SonataFlow dev mode image (`registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.36.0`), which may take a few minutes.
+
+Once running, the workflow is available at `http://localhost:8080` with a Swagger UI for testing.
+
+== Next
+
+Continue to xref:10-wrapup.adoc[Module 10: Wrap-up and Next Steps] for a summary and cleanup.

@@ -1,0 +1,32 @@
+{
+  "name": "secure-ai-agents-workshop",
+  "description": "Workshop: Secure AI Coding Agents on OpenShift with DevSpaces + Agent Sandbox",
+  "homepage": "https://rrbanda.github.io/mcp-skills/",
+  "author": {
+    "name": "rrbanda"
+  },
+  "dependencies": {
+    "@antora/cli": "2.3.1",
+    "@antora/site-generator-default": "2.3.1",
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/register": "^7.5.5",
+    "browser-sync": "^2.26.7",
+    "fs-extra": "^8.1.0",
+    "gulp": "^4.0.0",
+    "yaml-js": "^0.2.3"
+  },
+  "scripts": {
+    "dev": "gulp",
+    "clean": "gulp clean",
+    "build": "npx antora site.yml"
+  },
+  "license": "Apache-2.0",
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
+}

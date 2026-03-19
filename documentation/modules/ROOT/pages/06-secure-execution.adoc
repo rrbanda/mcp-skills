@@ -1,0 +1,207 @@
+= Secure Execution with Agent Sandbox
+include::_attributes.adoc[]
+
+In this module, you will claim a sandbox from the WarmPool, execute commands inside it, and *prove* that the isolation works by testing four security boundaries.
+
+== Create a Sandbox from the WarmPool
+
+Apply the SandboxClaim to request a sandbox from the warm pool:
+
+[.console-input]
+[source,bash]
+----
+oc apply -f demo/sandbox-claim.yaml
+----
+
+[.console-output]
+[source,bash]
+----
+sandboxclaim.extensions.agents.x-k8s.io/my-agent-sandbox created
+----
+
+Verify the claim is bound and the sandbox pod is running:
+
+[.console-input]
+[source,bash]
+----
+oc get sandboxclaim -n {sandbox-namespace}
+----
+
+[.console-input]
+[source,bash]
+----
+oc get sandbox,pod -n {sandbox-namespace}
+----
+
+The sandbox pod should already be *Running* — it was pre-warmed by the WarmPool, so allocation is near-instant.
+
+== Execute Commands in the Sandbox
+
+Use the bridge script to run commands inside the sandbox:
+
+[.console-input]
+[source,bash]
+----
+./demo/sandbox-exec.sh python3 -c "print('Hello from the secure sandbox!')"
+----
+
+[.console-output]
+[source,bash]
+----
+Hello from the secure sandbox!
+----
+
+[.console-input]
+[source,bash]
+----
+./demo/sandbox-exec.sh bash -c "whoami && hostname"
+----
+
+The sandbox runs as a non-root user inside an isolated pod.
+
+== Isolation Proof
+
+This is the key demonstration. We run the *same commands* in the DevSpaces workspace and in the sandbox to show the contrast.
+
+=== Test 1: Read Secrets
+
+*From the workspace (works):*
+
+[.console-input]
+[source,bash]
+----
+printenv | grep -i key | head -3
+----
+
+You will see credential-related environment variables (API keys, cloud credentials, tokens, etc.).
+
+*From the sandbox (blocked):*
+
+[.console-input]
+[source,bash]
+----
+./demo/sandbox-exec.sh bash -c "printenv | grep -i key || echo 'No keys found — sandbox has no mounted secrets'"
+----
+
+[.console-output]
+[source,bash]
+----
+No keys found — sandbox has no mounted secrets
+----
+
+The sandbox pod has no secrets or credential environment variables mounted.
+
+=== Test 2: Network Access
+
+*From the workspace (works):*
+
+[.console-input]
+[source,bash]
+----
+curl -s https://httpbin.org/ip | head -3
+----
+
+You will see your external IP address.
+
+*From the sandbox (blocked):*
+
+[.console-input]
+[source,bash]
+----
+./demo/sandbox-exec.sh bash -c "curl -s --connect-timeout 5 https://httpbin.org/ip || echo 'BLOCKED: Network access denied by NetworkPolicy'"
+----
+
+[.console-output]
+[source,bash]
+----
+BLOCKED: Network access denied by NetworkPolicy
+----
+
+The SandboxTemplate NetworkPolicy denies all egress except DNS resolution.
+
+=== Test 3: Kubernetes API Access
+
+*From the workspace (works):*
+
+[.console-input]
+[source,bash]
+----
+oc whoami
+----
+
+*From the sandbox (blocked):*
+
+[.console-input]
+[source,bash]
+----
+./demo/sandbox-exec.sh bash -c "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null || echo 'BLOCKED: No service account token — automountServiceAccountToken is false'"
+----
+
+[.console-output]
+[source,bash]
+----
+BLOCKED: No service account token — automountServiceAccountToken is false
+----
+
+=== Test 4: Verify Kata VM Runtime
+
+Confirm the sandbox pod is running inside a Kata VM:
+
+[.console-input]
+[source,bash]
+----
+oc get pod -n {sandbox-namespace} -o jsonpath='{.items[0].spec.runtimeClassName}' && echo ""
+----
+
+[.console-output]
+[source,bash]
+----
+kata-remote
+----
+
+Each sandbox runs in a dedicated lightweight VM — complete kernel-level isolation from the host and other pods.
+
+== Summary of Isolation
+
+[cols="2,1,1"]
+|===
+| Test | Workspace | Sandbox
+
+| Read credential env vars
+| Accessible
+| *Blocked*
+
+| Curl external URLs
+| Works
+| *Blocked*
+
+| Kubernetes API token
+| Mounted
+| *Not mounted*
+
+| Container runtime
+| Standard (runc)
+| *Kata VM*
+|===
+
+== Disposable Sandbox
+
+Sandboxes are disposable. Delete and recreate to prove no state leaks:
+
+[.console-input]
+[source,bash]
+----
+oc delete sandboxclaim my-agent-sandbox -n {sandbox-namespace}
+----
+
+[.console-input]
+[source,bash]
+----
+oc apply -f demo/sandbox-claim.yaml
+----
+
+The WarmPool instantly provides a fresh pod. No state from the previous sandbox carries over.
+
+== Next
+
+Now let's put the agent to real work: xref:07-mcp-server.adoc[Module 7: Build and Deploy an MCP Server].

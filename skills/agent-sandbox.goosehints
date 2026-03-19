@@ -1,0 +1,148 @@
+# Agent Sandbox on OpenShift — Domain Knowledge
+
+## What is Agent Sandbox?
+
+kubernetes-sigs/agent-sandbox is a Kubernetes SIG-Apps project that provides
+Custom Resource Definitions (CRDs) for managing isolated, stateful, singleton
+workloads — specifically designed for AI coding agents that execute untrusted code.
+
+Project: https://github.com/kubernetes-sigs/agent-sandbox
+Version: v0.2.1
+
+## CRD Reference
+
+### Sandbox (core)
+- apiVersion: agents.x-k8s.io/v1alpha1
+- Creates a single pod + headless Service + optional PVCs
+- Pod spec goes under spec.podTemplate.spec (standard PodSpec)
+- Metadata/annotations go under spec.podTemplate.metadata
+
+### SandboxTemplate (extension)
+- apiVersion: extensions.agents.x-k8s.io/v1alpha1
+- Reusable template for creating sandboxes via SandboxClaim
+- Same spec as Sandbox plus spec.networkPolicy for per-sandbox NetworkPolicy
+
+### SandboxWarmPool (extension)
+- apiVersion: extensions.agents.x-k8s.io/v1alpha1
+- Pre-warms N sandbox pods from a SandboxTemplate
+- spec.replicas: number of warm pods
+- spec.sandboxTemplateRef.name: must match a SandboxTemplate in same namespace
+
+### SandboxClaim (extension)
+- apiVersion: extensions.agents.x-k8s.io/v1alpha1
+- Claims a sandbox from a WarmPool (instant) or creates one from template
+- spec.sandboxTemplateRef.name: must match a SandboxTemplate
+- spec.lifecycle.shutdownPolicy: "Retain" (keep after release) or "Delete"
+
+## NetworkPolicy in SandboxTemplate
+
+IMPORTANT: As of agent-sandbox v0.2.1, the SandboxTemplate's spec.networkPolicy
+section is stored but the controller does NOT auto-create Kubernetes NetworkPolicy
+resources from it. You must create a NetworkPolicy manually in the same namespace.
+This may be fixed in a future release.
+
+Recommended deny-all with DNS exception:
+```yaml
+networkPolicy:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: <workspace-namespace>
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+```
+
+This blocks:
+- All outbound traffic (no data exfiltration)
+- Access to the Kubernetes API server
+- Communication with other sandbox pods
+- Only DNS resolution is allowed
+
+## RuntimeClass Options
+
+| Platform | RuntimeClass | Isolation |
+|----------|-------------|-----------|
+| AWS (OpenShift) | kata-remote | Peer pod — dedicated EC2 VM |
+| Bare metal (OpenShift) | kata | Kata Container — lightweight VM |
+| GKE | gvisor | gVisor — user-space kernel |
+| Any | (omit field) | Standard container — no VM isolation |
+
+On AWS with OpenShift Sandboxed Containers, use `kata-remote`. This runs each
+sandbox inside a dedicated EC2 instance via the peer pods architecture.
+
+Kata annotations for tuning (in podTemplate.metadata.annotations):
+- io.katacontainers.config.hypervisor.default_vcpus: "2"
+- io.katacontainers.config.hypervisor.default_memory: "4096"
+
+AWS peer-pods ONLY annotations (remove on bare metal or GKE):
+- io.katacontainers.config.hypervisor.machine_type: "t3.medium"
+  Forces the EC2 instance type. Required because the peer-pods AMI uses
+  TPM 2.0, which older instance families (t2) do not support.
+- io.kubernetes.cri-o.userns-mode: ""
+
+## OpenShift SCC Requirements
+
+On OpenShift, the SandboxTemplate uses runAsUser: 10001 to match the container
+image's non-root user. OpenShift's restricted-v2 SCC rejects UIDs outside the
+namespace's auto-assigned range. You must grant `anyuid` SCC:
+  oc adm policy add-scc-to-user anyuid -z agent-sandbox-controller -n agent-sandbox-system
+  oc adm policy add-scc-to-user anyuid -z default -n <sandbox-namespace>
+This is NOT needed on vanilla Kubernetes.
+
+## Security Settings Rationale
+
+- automountServiceAccountToken: false — prevents sandbox from accessing K8s API
+- runAsNonRoot: true — prevents root escalation inside the container
+- runAsUser: 10001 — matches the non-root user in the mcp-skills image
+- Resource limits (2 CPU, 4Gi) — prevents resource abuse / crypto mining
+- NetworkPolicy deny-all — prevents data exfiltration and lateral movement
+
+## OpenShift Sandboxed Containers Setup
+
+To enable Kata runtime on OpenShift:
+
+1. Install the operator:
+   - Package: sandboxed-containers-operator
+   - Channel: stable
+   - Namespace: openshift-sandboxed-containers-operator
+
+2. Create KataConfig:
+   ```yaml
+   apiVersion: kataconfiguration.openshift.io/v1
+   kind: KataConfig
+   metadata:
+     name: cluster-kataconfig
+   spec:
+     enablePeerPods: true  # Required for AWS
+   ```
+
+3. For AWS, also need:
+   - peer-pods-secret (AWS credentials)
+   - peer-pods-cm (region, VPC, subnet, security groups)
+   - Security group rules for ports 15150 and 9000
+
+4. KataConfig triggers node reboots (10-60 min)
+5. RuntimeClass `kata-remote` becomes available after installation
+
+## Troubleshooting
+
+- "RuntimeClass not found": Kata not installed yet. Sandbox will fail to
+  schedule. Either install Kata or remove runtimeClassName from the template.
+- "unable to validate against any security context constraint": Grant anyuid
+  SCC to both the controller SA and the default SA in the sandbox namespace.
+- "UnsupportedOperation: The t2.medium instance type does not support an AMI
+  with TPM version v2.0": Add the machine_type annotation to force t3.medium.
+  This only affects AWS peer-pods.
+- "sandbox pod pending": Check events with `oc get events -n <namespace>`.
+  Common cause: insufficient resources or RuntimeClass not available.
+- "warm pool pods not starting": Verify the SandboxTemplate exists in the
+  same namespace as the WarmPool. Names must match exactly.
+- "curl works from sandbox" (network not blocked): The SandboxTemplate's
+  networkPolicy is not auto-applied. Create a Kubernetes NetworkPolicy manually.
+- Peer pods on AWS: If sandbox pods are stuck in ContainerCreating, check
+  the cloud-api-adaptor logs in openshift-sandboxed-containers-operator namespace.

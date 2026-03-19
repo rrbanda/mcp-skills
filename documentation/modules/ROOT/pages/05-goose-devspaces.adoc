@@ -1,0 +1,127 @@
+= Your First Goose Session in DevSpaces
+include::_attributes.adoc[]
+
+== What is Goose?
+
+Goose is an open-source AI coding agent by Block (Square). It executes multi-step workflows via recipes and supports MCP (Model Context Protocol) for connecting to external tools. Goose runs inside the DevSpaces workspace terminal alongside your IDE.
+
+== Configure the LLM Provider
+
+Goose needs an LLM provider. The workspace devfile pre-configures environment variables for this. Verify your configuration:
+
+[.console-input]
+[source,bash]
+----
+echo $GOOSE_PROVIDER
+echo $GOOSE_MODEL
+----
+
+NOTE: The values you see depend on how the workspace was configured. A self-hosted vLLM setup might show `openai` / `vllm-inference/gpt-oss-120b`. A direct OpenAI setup would show `openai` / `gpt-4o`. Any OpenAI-compatible provider works — the key is that both variables are set.
+
+The workspace connects to Llama Stack via the standard OpenAI Chat Completions API (`/v1/chat/completions`). No proxy is required -- Goose talks directly to Llama Stack.
+
+Verify `OPENAI_HOST` is set to your Llama Stack URL:
+
+[.console-input]
+[source,bash]
+----
+echo $OPENAI_HOST
+curl -s $OPENAI_HOST/v1/models | python3 -c "import sys,json; [print(m['id']) for m in json.load(sys.stdin)['data'] if m.get('custom_metadata',{}).get('model_type')=='llm']"
+----
+
+== Install the Goose VS Code Extension
+
+The Goose extension is already installed via `postStart`. If not, run:
+
+[.console-input]
+[source,bash]
+----
+code --install-extension /opt/extensions/vscode-goose.vsix
+----
+
+== Start an Interactive Session
+
+[.console-input]
+[source,bash]
+----
+goose session
+----
+
+Try asking Goose: *"Create a Python script that prints the current date and system info"*
+
+Expected behavior: Goose generates the script *and* executes it, showing you the output directly in the terminal.
+
+== Understanding Recipes
+
+Recipes are YAML templates for repeatable multi-step workflows. Structure:
+
+[source,yaml]
+----
+version: 1.0.0
+title: Recipe Title
+parameters:
+  - key: param_name
+    input_type: string
+instructions: |
+  You are an expert...
+prompt: |
+  Do the following steps...
+----
+
+List the available recipes:
+
+[.console-input]
+[source,bash]
+----
+ls skills/*.yaml
+----
+
+[.console-output]
+[source,bash]
+----
+skills/create-fastmcp-server.yaml
+skills/deploy-fastmcp-server.yaml
+skills/create-orchestrator-workflow.yaml
+skills/deploy-agent-sandbox.yaml
+----
+
+== Understanding .goosehints
+
+Project context files that give Goose domain knowledge. View the hints:
+
+[.console-input]
+[source,bash]
+----
+cat .goosehints | head -20
+----
+
+[.console-output]
+[source,bash]
+----
+# MCP Skills Project
+
+This project uses goose agent skills to create FastMCP MCP servers.
+
+## Current Task: DevSpaces MCP Server
+
+Transform the DevSpaces REST API into a FastMCP MCP server that manages
+OpenShift Dev Spaces workspaces via the DevWorkspace Kubernetes API.
+
+### Target Cluster
+
+- API Server: auto-detect at runtime with `oc whoami --show-server`
+- DevWorkspace API base path: /apis/workspace.devfile.io/v1alpha2
+
+In the generated code, build the BASE_URL dynamically:
+```python
+import subprocess
+API_SERVER = subprocess.check_output(["oc", "whoami", "--show-server"], text=True).strip()
+BASE_URL = f"{API_SERVER}/apis/workspace.devfile.io/v1alpha2"
+```
+----
+
+Goosehints contain API references, project structure, and domain knowledge that help Goose generate accurate code and follow project conventions.
+
+== Next
+
+Continue to xref:06-secure-execution.adoc[Module 6: Secure Execution with Agent Sandbox] to run commands in the secure sandbox.

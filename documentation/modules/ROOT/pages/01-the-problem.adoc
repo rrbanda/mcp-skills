@@ -1,0 +1,98 @@
+= The Problem: Why AI Agents Need Sandboxes
+include::_attributes.adoc[]
+
+== What AI Coding Agents Do
+
+AI coding agents like Cline, GitHub Copilot, Cursor, and Goose do more than suggest code—they *plan* and *execute* code with developer-level permissions. When you ask an agent to "fix the bug in auth.py," it may:
+
+* Read your entire codebase
+* Run shell commands (`git`, `npm`, `pytest`, etc.)
+* Edit files and commit changes
+* Execute scripts and tests
+* Call external APIs
+
+The agent operates with the same access as you: your SSH keys, environment variables, cloud credentials, and network access. That power is essential for productivity—and dangerous if compromised.
+
+== What Can Go Wrong
+
+Real incidents demonstrate the risks:
+
+[cols="1,2,2"]
+|===
+| Attack Type | Incident | Impact
+
+| Prompt Injection
+| link:https://adnanthekhan.com/posts/clinejection/[Clinejection] — a crafted GitHub issue title tricked Cline's AI triage bot into executing malicious commands
+| ~4,000 developer machines compromised; malicious `cline@2.3.0` package with postinstall script installed OpenClaw globally
+
+| Credential Theft
+| link:https://mcpsec.dev/advisories/2025-10-02-kilo-code-ai-agent-supply-chain-attack/[Kilo Code CVE-2025-11445] — prompt injection in ClineProvider allowed attackers to rewrite `settings.json` and bypass security whitelists
+| Supply chain contamination via automatic commits/pushes; repository poisoning; cross-system credential exposure
+
+| Supply Chain Poisoning
+| link:https://clawport.io/blog/clawhavoc-supply-chain-attack-what-happened[ClawHavoc] — malicious skills uploaded to ClawHub marketplace
+| ~12% of registry compromised; keyloggers, token harvesters, backdoors, and Atomic Stealer (AMOS) malware deployed via trojan skills
+
+| Command Injection
+| link:https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/[Trail of Bits RCE] — argument injection via command flags (e.g., `go test -exec`) bypassed human approval
+| One-shot RCE across multiple popular AI agent platforms; validated command whitelists proved insufficient
+
+| Resource Abuse
+| Fork bombs, crypto mining, runaway processes
+| Exhausted CPU/memory; cost overruns; denial of service to shared infrastructure
+|===
+
+== Planning vs Execution
+
+The key insight: AI agents have two distinct phases.
+
+[cols="1,3"]
+|===
+| Phase | Characteristics
+
+| *Planning*
+| Safe. The agent reasons, generates code, and proposes actions. No side effects. No system access. Runs in the LLM context.
+
+| *Execution*
+| Dangerous. The agent runs shell commands, edits files, and makes network calls. Real system impact. Full developer permissions. This is where attacks succeed.
+|===
+
+Sandboxing the *execution* phase while leaving planning unrestricted is the solution. The agent can still think and plan freely—but when it executes, it runs inside an isolated environment with no access to credentials, secrets, or sensitive data.
+
+== The Impact
+
+By isolating execution, organizations can adopt AI coding agents without exposing production credentials, source code, or infrastructure to prompt injection, supply chain attacks, or malicious tool abuse. Anthropic reported that sandboxing link:https://www.anthropic.com/engineering/claude-code-sandboxing[reduced permission prompts by 84%] while maintaining security — letting agents work autonomously within safe boundaries instead of asking for approval on every action.
+
+== Try It Yourself
+
+On an *unsandboxed* system, an AI agent (or any process with your permissions) can access sensitive data. Run these commands to see what an agent could read:
+
+[.console-input]
+[source,bash]
+----
+cat ~/.ssh/id_rsa 2>/dev/null || echo "SSH key accessible if present"
+----
+
+[.console-input]
+[source,bash]
+----
+printenv | grep -i key
+----
+
+[.console-input]
+[source,bash]
+----
+curl -s https://httpbin.org/ip
+----
+
+[.console-input]
+[source,bash]
+----
+cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 50
+----
+
+NOTE: In Module 6, you'll see these same commands *blocked* inside the Agent Sandbox.
+
+== Next
+
+Continue to xref:02-industry-solutions.adoc[Module 2: Industry Solutions] to learn how Anthropic, Google, GitHub, and OpenAI approach sandboxing.

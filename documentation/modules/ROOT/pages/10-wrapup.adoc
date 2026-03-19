@@ -1,0 +1,96 @@
+= Wrap-up and Next Steps
+include::_attributes.adoc[]
+
+== What We Covered
+
+Summary of all 10 modules:
+
+* Module 0: Welcome and Prerequisites
+* Module 1: The Problem — AI coding agents need secure execution
+* Module 2: Industry Solutions — Claude Code Sandboxing, Agent Sandbox
+* Module 3: Architecture — Kata VMs, NetworkPolicy, WarmPool
+* Module 4: Setup — Deploy Agent Sandbox on OpenShift
+* Module 5: Goose in DevSpaces — First session, recipes, .goosehints
+* Module 6: Secure Execution — SandboxClaim, isolation proof, disposable sandbox
+* Module 7: MCP Server — Generate and deploy FastMCP server
+* Module 8: Test MCP Server — Verify endpoint, register extension, full loop
+* Module 9: Bonus — Orchestrator Workflows with ServerlessWorkflow/SonataFlow
+
+== Skills Used in This Workshop
+
+|===
+| Recipe | Purpose | What It Automates
+
+| `deploy-agent-sandbox`
+| Module 4
+| Deploy SandboxTemplate, NetworkPolicy, WarmPool; install operator if needed
+
+| `create-fastmcp-server`
+| Module 7
+| Generate FastMCP server from .goosehints and DevSpaces API
+
+| `deploy-fastmcp-server`
+| Module 7
+| Build image, push to registry, create Deployment + Service + Route
+
+| `create-orchestrator-workflow`
+| Module 9
+| Scaffold RHDH Orchestrator workflow (ServerlessWorkflow/SonataFlow)
+|===
+
+== The Enterprise Value
+
+Why this matters for enterprises:
+
+* *On-premises* — Code never leaves the network
+* *RBAC* — OpenShift identity + DevSpaces namespaces
+* *Compliance* — Audit trails, approved base images, data residency
+* *Multi-tenant* — Hundreds of developers, each with isolated sandboxes
+* *Self-service* — Che Dashboard for workspace creation
+
+== What's Next
+
+Future directions:
+
+* *MCP server as the sandbox bridge* — Wrap `oc exec` in an MCP server so agents use the sandbox transparently
+* *Upstream contribution* — Propose the DevSpaces + Agent Sandbox pattern to both communities
+* *WarmPool auto-scaling* — Tune pool size based on demand
+* *Per-task sandbox rotation* — Fresh sandbox per workflow step
+
+== Cleanup
+
+Remove demo resources:
+
+[.console-input]
+[source,bash]
+----
+./demo/cleanup.sh
+----
+
+[.console-output]
+[source,bash]
+----
+=== Cleaning up Secure Agent Sandbox Demo ===
+
+1. Deleting SandboxClaims...
+2. Deleting SandboxWarmPool...
+3. Waiting for warm pool sandboxes to terminate...
+4. Deleting SandboxTemplate...
+5. Deleting remaining Sandboxes...
+6. Deleting NetworkPolicies...
+7. Deleting any Routes and Services...
+
+=== Cleanup Complete ===
+Namespace {sandbox-namespace} still exists. To remove it: oc delete namespace {sandbox-namespace}
+----
+
+== References
+
+* https://github.com/kubernetes-sigs/agent-sandbox[kubernetes-sigs/agent-sandbox]
+* https://www.anthropic.com/engineering/claude-code-sandboxing[Anthropic Claude Code Sandboxing]
+* https://opensource.googleblog.com/2025/11/unleashing-autonomous-ai-agents-why-kubernetes-needs-a-new-standard-for-agent-execution.html[Agent Sandbox announcement (Google Open Source Blog)]
+* {github-repo}[This repo]
+* https://docs.redhat.com/en/documentation/red_hat_openshift_dev_spaces[Red Hat OpenShift Dev Spaces docs]
+* https://developer.nvidia.com/blog/practical-security-guidance-for-sandboxing-agentic-workflows-and-managing-execution-risk/[NVIDIA Security Guidance]
+* https://github.com/rhdhorchestrator/orchestrator-demo[RHDH Orchestrator Demo Workflows]
+* https://serverlessworkflow.io/[CNCF ServerlessWorkflow Specification]

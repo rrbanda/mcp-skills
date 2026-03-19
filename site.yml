@@ -1,0 +1,35 @@
+runtime:
+  cache_dir: ./.cache/antora
+
+site:
+  title: "Secure AI Coding Agents on OpenShift"
+  url: https://rrbanda.github.io/mcp-skills/
+  start_page: secure-ai-agents-workshop::index.adoc
+
+content:
+  sources:
+    - url: .
+      branches: [main]
+      start_path: documentation
+
+asciidoc:
+  attributes:
+    release-version: v1.0
+    page-pagination: true
+    page-hide-versions-component: true
+    experimental: true
+    github-repo: https://github.com/rrbanda/mcp-skills
+    sandbox-namespace: sandbox-devspaces
+    sandbox-image: quay.io/rbrhssa/mcp-skills:latest
+    agent-sandbox-version: v0.2.1
+  extensions:
+    - ./lib/tab-block.js
+    - ./lib/remote-include-processor.js
+
+ui:
+  bundle:
+    url: https://github.com/redhat-scholars/course-ui/releases/download/v0.1.14/ui-bundle.zip
+    snapshot: true
+
+output:
+  dir: ./gh-pages

@@ -1,0 +1,196 @@
+= The Architecture: DevSpaces + Agent Sandbox
+include::_attributes.adoc[]
+
+== The Enterprise Gap
+
+Cloud sandbox providers solve execution isolation for SaaS, but enterprises need more:
+
+* *On-premises execution* — data never leaves the datacenter
+* *Existing identity/auth* — OIDC, LDAP, RBAC integration
+* *Compliance* — audit trails, data residency, regulatory requirements
+* *Integration* — CI/CD, GitOps, container registries
+* *Multi-tenancy* — shared clusters with tenant isolation
+
+The DevSpaces + Agent Sandbox architecture addresses these requirements on OpenShift.
+
+== What Each Component Provides
+
+[cols="1,3"]
+|===
+| Component | Capabilities
+
+| *DevSpaces*
+| IDE (Che Code), devfiles, OIDC auth, dashboard, project clone, persistent storage
+
+| *Coding Agent / Goose*
+| Code understanding, planning, generation, tool use
+
+| *Agent Sandbox*
+| Isolated execution with VM isolation (Kata/gVisor), NetworkPolicy, lifecycle management
+
+| *SandboxWarmPool*
+| Pre-warmed pods for sub-second allocation
+
+| *SandboxTemplate*
+| Allowed resources, network rules, runtime class
+|===
+
+== Combined Architecture
+
+[source,text]
+----
+OpenShift Cluster
+├── DevSpaces Workspace Pod
+│   ├── Che Code IDE
+│   ├── Goose agent (planning, credentials, /projects persistent)
+│   └── ────────────────────────────────────────────────────────►
+│                                                               │
+│   Agent Sandbox Pod ◄─────────────────────────────────────────┘
+│   ├── Kata/gVisor runtime
+│   ├── Code execution
+│   ├── No credentials (automountServiceAccountToken: false)
+│   ├── Network locked (deny-all + DNS only)
+│   └── Disposable (replaced from WarmPool)
+│
+└── SandboxWarmPool
+    └── Pre-warmed pods ready for instant allocation
+----
+
+== How the Agent Uses the Sandbox
+
+Three approaches, from simplest to most integrated:
+
+1. *oc exec* — The agent runs `oc exec` into a sandbox pod. Simplest; works with any agent.
+2. *Agent Sandbox Python SDK* — Programmatic claim/exec/release lifecycle.
+3. *MCP server* — An MCP server wraps the SDK; the agent invokes tools that delegate to the sandbox.
+
+== Security Properties
+
+[cols="1,2"]
+|===
+| Property | How It's Enforced
+
+| Kernel isolation
+| Kata/gVisor via `runtimeClassName`
+
+| No credentials
+| `automountServiceAccountToken: false`
+
+| Network lockdown
+| NetworkPolicy deny-all + DNS only
+
+| Resource limits
+| CPU/memory in SandboxTemplate
+
+| Disposable
+| WarmPool instant replacement
+
+| Filesystem isolation
+| Ephemeral by default; optional PVC per sandbox
+
+| Audit trail
+| OpenShift audit logging
+|===
+
+== Verify Your Environment
+
+Before proceeding to Module 4, verify DevSpaces and (if installed) Agent Sandbox:
+
+[.console-input]
+[source,bash]
+----
+oc get pods -n openshift-devspaces | head -5
+----
+
+[.console-output]
+[source,bash]
+----
+NAME                                  READY   STATUS    RESTARTS   AGE
+devspaces-operator-xxxxx-yyyyy        1/1     Running   0          2d
+postgres-xxxxx-yyyyy                  1/1     Running   0          2d
+----
+
+[.console-input]
+[source,bash]
+----
+oc get sandboxtemplates -A 2>/dev/null || echo "Agent Sandbox not yet installed"
+----
+
+[.console-output]
+[source,bash]
+----
+Agent Sandbox not yet installed
+----
+
+NOTE: This is expected — Agent Sandbox is installed in Module 4.
+
+== Comparison: Industry Approaches
+
+[cols="1,1,1,1,1"]
+|===
+| Capability | Anthropic | K8s Agent Sandbox | GitHub | DevSpaces + Agent Sandbox
+
+| IDE
+| Claude Code
+| (varies)
+| VS Code / Copilot
+| Che Code (DevSpaces)
+
+| Agent
+| Claude
+| (varies)
+| Copilot
+| Goose
+
+| Execution isolation
+| bubblewrap/Seatbelt
+| gVisor/Kata
+| GitHub Actions VM
+| Kata/gVisor (Agent Sandbox)
+
+| Credential handling
+| No credentials in sandbox
+| No credentials in sandbox
+| No credentials in Actions
+| No credentials in sandbox
+
+| Network controls
+| Proxy
+| NetworkPolicy
+| Actions network
+| NetworkPolicy deny-all
+
+| Warm pools
+| No
+| Yes (WarmPool)
+| No
+| Yes (SandboxWarmPool)
+
+| Multi-tenant
+| No
+| Yes
+| Yes (org/repo)
+| Yes (OpenShift)
+
+| On-premises
+| Partial (local CLI)
+| Yes (Kubernetes)
+| No
+| Yes (OpenShift)
+
+| Devfile support
+| No
+| No
+| No
+| Yes
+
+| Self-service
+| No
+| Yes
+| Yes
+| Yes
+|===
+
+== Next
+
+Continue to xref:04-setup.adoc[Module 4: Setup] to deploy the sandbox environment using a Goose recipe.

@@ -1,0 +1,206 @@
+version: 1.0.0
+title: Create RHDH Orchestrator Workflow
+description: >
+  Scaffold a complete Red Hat Developer Hub Orchestrator workflow project
+  using the CNCF ServerlessWorkflow spec (SonataFlow). Generates the Quarkus
+  project structure, workflow definition (.sw.yaml), input/output JSON schemas,
+  and application configuration — ready to run with kn-workflow or deploy to
+  OpenShift.
+author:
+  contact: rrbanda
+
+activities:
+  - "Read orchestrator workflow reference context"
+  - "Scaffold the Quarkus project directory structure"
+  - "Generate the ServerlessWorkflow definition (.sw.yaml)"
+  - "Generate input and output JSON schemas"
+  - "Write application.properties with Quarkus/Kogito config"
+  - "Validate the workflow YAML structure"
+  - "Report the created project"
+
+instructions: |
+  You are an expert in building RHDH Orchestrator workflows using the CNCF
+  ServerlessWorkflow specification (v0.8) on the SonataFlow / Quarkus runtime.
+
+  ## Available Tools (use ONLY these - NEVER invent tool names)
+
+  You have exactly these tools. NEVER call any other tool name:
+  - `write` — Create or overwrite a file. Requires: path, content.
+  - `edit` — Modify an existing file via find-and-replace. Requires: path, before, after.
+  - `shell` — Run a shell command. Requires: command.
+  - `tree` — List a directory tree. Requires: path.
+
+  NEVER call: open_file, apply_patch, read_file, create_file, save_file,
+  insert_text, replace_in_file, or any name not listed above.
+  To read a file, use `shell` with `cat <path>`.
+
+  ## Key Patterns
+
+  The orchestrator workflow reference file (read in Step 1) contains the complete
+  spec reference, project structure, working examples, and schema patterns.
+  Use it as your primary source of truth — especially the CRITICAL RULES section.
+
+  Summary of rules you MUST follow:
+  - `specVersion` is always "0.8", `version` is always "1.0"
+  - `id` must be lowercase, alphanumeric with hyphens
+  - `extensions` MUST use `extensionid` (all lowercase) with direct `outputSchema`
+    property — NEVER use `extensionId`, `extensionArgs`, or any other format
+  - `extensions` MUST come BEFORE `functions` in the YAML
+  - Expression functions (like `successResult`) MUST wrap output in a `"result"`
+    object: `{ "result": { "message": ..., "outputs": [] } }`
+  - Expression functions are called WITHOUT arguments — they read workflow data
+    directly via jq (e.g. `.fieldName`)
+  - In function arguments, use jq string concatenation: `'"text " + .field'`
+    NEVER use template syntax like `{{'{{$ .field}}'}}`
+  - Use `end: true` on the last state — NEVER use `transition: end`
+  - The output schema is STANDARDIZED — copy it exactly from the reference
+
+  ## CRITICAL: Fixing Rules
+
+  When fixing bugs, follow these rules strictly:
+  - NEVER refactor working code. Only change what is broken.
+  - After every `edit`, re-run the validation to confirm the fix worked.
+
+parameters:
+  - key: project_name
+    input_type: string
+    requirement: required
+    description: "Directory name for the workflow project (e.g. my_workflow)"
+
+  - key: workflow_id
+    input_type: string
+    requirement: required
+    description: "Unique workflow identifier, lowercase alphanumeric with hyphens (e.g. my-workflow)"
+
+  - key: workflow_description
+    input_type: string
+    requirement: optional
+    default: "A new orchestrator workflow"
+    description: "Human-readable description of what this workflow does"
+
+extensions:
+  - type: builtin
+    name: developer
+    timeout: 300
+    bundled: true
+    description: "Write and edit files, and execute shell commands"
+
+prompt: |
+  Create an RHDH Orchestrator workflow project named {{ project_name }}
+  with workflow id "{{ workflow_id }}".
+  Description: {{ workflow_description }}
+
+  Follow these steps IN ORDER. Use ONLY the tools listed in the instructions.
+
+  **Step 1 — DISCOVER**
+  Use `shell` with `cat {{ recipe_dir }}/orchestrator-workflow.goosehints` to read
+  the orchestrator workflow reference. Study:
+  - The complete 01_basic example (workflow YAML, input schema, output schema)
+  - The project structure layout
+  - The ServerlessWorkflow spec field reference
+  - The RHDH Orchestrator UI integration notes
+
+  **Step 2 — SCAFFOLD PROJECT**
+  Use `shell` to create the directory structure:
+    mkdir -p {{ project_name }}/src/main/resources/schemas
+  If the workflow needs custom Java logic, also run:
+    mkdir -p {{ project_name }}/src/main/java/{{ workflow_id | replace('-', '') }}
+
+  **Step 3 — CREATE WORKFLOW DEFINITION**
+  Use the `write` tool to create {{ project_name }}/src/main/resources/{{ workflow_id }}.sw.yaml
+  Follow the 01_basic example from Step 1 EXACTLY. The file MUST have this structure:
+
+  ```
+  id: {{ workflow_id }}
+  version: "1.0"
+  specVersion: "0.8"
+  name: "<readable name>"
+  description: {{ workflow_description }}
+  dataInputSchema: schemas/{{ workflow_id }}__main-schema.json
+  extensions:
+    - extensionid: workflow-output-schema
+      outputSchema: schemas/workflow-output-schema.json
+  functions:
+    - name: print
+      type: custom
+      operation: sysout
+    - name: successResult
+      type: expression
+      operation: '{
+        "result": {
+        "message": "<message using jq like .fieldName>",
+        "outputs":[]
+        }
+        }'
+  start: "<state name>"
+  states:
+    - name: <state name>
+      type: operation
+      actions:
+        - functionRef:
+            refName: print
+            arguments:
+              message: '"Log: " + .fieldName'
+        - name: setOutput
+          functionRef:
+            refName: successResult
+      end: true
+  ```
+
+  CRITICAL RULES for this file (read the CRITICAL RULES in the reference):
+  - NEVER omit `version: "1.0"`
+  - `extensions` MUST use `extensionid` (lowercase), NOT `extensionId`
+  - `successResult` operation MUST wrap output in `"result": { ... }`
+  - `successResult` is called WITHOUT arguments (it reads workflow data via jq)
+  - Use jq concatenation in arguments: `'"text " + .field'` NOT template syntax
+  - Last state MUST use `end: true` NOT `transition: end`
+
+  **Step 4 — CREATE INPUT SCHEMA**
+  Use the `write` tool to create:
+    {{ project_name }}/src/main/resources/schemas/{{ workflow_id }}__main-schema.json
+  Follow the input schema pattern from the reference. Define properties for each
+  input field the workflow needs. Mark required fields in the "required" array.
+  Each property needs: title, description, type. Add pattern for validation.
+
+  **Step 5 — CREATE OUTPUT SCHEMA**
+  Use the `write` tool to create:
+    {{ project_name }}/src/main/resources/schemas/workflow-output-schema.json
+  Copy the STANDARD output schema EXACTLY from the reference file (the one with
+  result.message, result.outputs[], result.nextWorkflows[]). Do NOT modify it.
+
+  **Step 6 — CREATE APPLICATION PROPERTIES**
+  Use the `write` tool to create:
+    {{ project_name }}/src/main/resources/application.properties
+  Copy the application.properties template from the reference file.
+
+  **Step 7 — VALIDATE**
+  Use `shell` to verify the project structure:
+    tree {{ project_name }}
+  Confirm all required files exist:
+  - {{ project_name }}/src/main/resources/{{ workflow_id }}.sw.yaml
+  - {{ project_name }}/src/main/resources/schemas/{{ workflow_id }}__main-schema.json
+  - {{ project_name }}/src/main/resources/schemas/workflow-output-schema.json
+  - {{ project_name }}/src/main/resources/application.properties
+  Use `shell` with `cat` to read back the .sw.yaml and verify ALL of these:
+  - `id` matches "{{ workflow_id }}"
+  - `version` is present and set to "1.0"
+  - `specVersion` is "0.8"
+  - `dataInputSchema` path is correct
+  - `extensions` uses `extensionid` (lowercase), NOT `extensionId`
+  - `extensions` comes BEFORE `functions` in the file
+  - `successResult` operation contains `"result": {` wrapper
+  - `successResult` is called WITHOUT arguments (just `refName`, no `arguments` block)
+  - Function arguments use jq syntax (`'"text" + .field'`), NOT template syntax
+  - Last state uses `end: true`, NOT `transition: end`
+  - `start` references a state that exists in the `states` array
+  - All `functionRef.refName` values match a function in the `functions` array
+  If anything is wrong, use `edit` to fix ONLY the broken part, then re-validate.
+
+  **Step 8 — REPORT**
+  Summarize the created project:
+  - Project directory: {{ project_name }}
+  - Workflow ID: {{ workflow_id }}
+  - Number of states and functions
+  - Input fields defined
+  - How to run locally: `cd {{ project_name }} && kn-workflow quarkus run`
+  - How to build for deployment: `../scripts/build.sh --image=<registry>/<image>`

@@ -1,0 +1,421 @@
+# RHDH Orchestrator Workflow Reference
+
+This file provides domain context for creating Red Hat Developer Hub (RHDH)
+Orchestrator workflows using the CNCF ServerlessWorkflow spec on SonataFlow.
+
+## Prerequisites
+
+- `kn-workflow` v1.36+: https://mirror.openshift.com/pub/cgw/serverless-logic/1.36.0/
+- OCP cluster with RHDH v1.5+ and Orchestrator plugin
+- OpenShift Serverless (OSL) v1.36
+
+## kn-workflow CLI Commands
+
+Create a new project:
+```
+kn-workflow quarkus create --name <project_name>
+```
+
+Run locally (from the project directory):
+```
+kn-workflow quarkus run
+```
+
+The dev mode image pulled for local runs:
+```
+registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.36.0
+```
+
+## Project Structure
+
+A workflow project follows the Quarkus layout:
+
+```
+<project_name>/
+├── pom.xml
+├── src/main/
+│   ├── java/<package>/           (optional — custom Java logic)
+│   │   └── <ClassName>.java
+│   └── resources/
+│       ├── application.properties
+│       ├── <workflow_id>.sw.yaml
+│       └── schemas/
+│           ├── <workflow_id>__main-schema.json
+│           └── workflow-output-schema.json
+```
+
+## CRITICAL RULES — Common Mistakes to Avoid
+
+These rules MUST be followed exactly. Violating any of them produces
+a workflow that will NOT run on SonataFlow.
+
+### 1. Field ordering and required fields
+
+The .sw.yaml MUST have these top-level fields in this order:
+```yaml
+id: <workflow_id>
+version: "1.0"
+specVersion: "0.8"
+name: "<name>"
+description: <description>
+dataInputSchema: schemas/<workflow_id>__main-schema.json
+extensions:
+  ...
+functions:
+  ...
+start: "<first_state_name>"
+states:
+  ...
+```
+NEVER omit `version: "1.0"`. NEVER put `extensions` after `states`.
+
+### 2. Extensions format — use EXACTLY this syntax
+
+```yaml
+extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
+```
+- The key is `extensionid` (all lowercase, NO capital letters)
+- The value `workflow-output-schema` is a fixed string
+- `outputSchema` is a direct property, NOT nested under `extensionArgs`
+- NEVER use `extensionId`, `extensionArgs`, or any other format
+
+### 3. Expression functions MUST wrap output in "result"
+
+The `successResult` expression MUST produce a `"result"` wrapper object.
+CORRECT:
+```yaml
+  - name: successResult
+    type: expression
+    operation: '{
+      "result": {
+      "message": "Hello " + .name,
+      "outputs":[]
+      }
+      }'
+```
+WRONG (missing "result" wrapper):
+```yaml
+    operation: '{ "message": .name, "outputs": [] }'
+```
+
+### 4. jq syntax in arguments — use string concatenation, NOT templates
+
+In function arguments, use jq string concatenation with `+`:
+CORRECT:
+```yaml
+    arguments:
+      message: '"Hello " + .name'
+```
+WRONG (template syntax is NOT valid jq):
+```yaml
+    arguments:
+      message: "Hello, {{$ .name}}!"
+```
+WRONG (no quotes around literal text):
+```yaml
+    arguments:
+      message: Hello + .name
+```
+
+### 5. Expression functions do NOT take arguments
+
+Expression functions read directly from workflow data using jq dot notation.
+They are called WITHOUT arguments:
+CORRECT:
+```yaml
+      - name: setOutput
+        functionRef:
+          refName: successResult
+```
+WRONG (expression functions ignore arguments):
+```yaml
+      - functionRef:
+          refName: successResult
+          arguments:
+            name: .name
+```
+
+### 6. Use `end: true` for the last state, NOT `transition: end`
+
+CORRECT:
+```yaml
+    end: true
+```
+WRONG:
+```yaml
+    transition: end
+```
+`transition` is only used to move to another named state: `transition: NextStateName`
+
+## ServerlessWorkflow Spec v0.8 — Reference
+
+### Top-Level Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| id | yes | Unique workflow identifier, lowercase alphanumeric with hyphens |
+| version | yes | Workflow version string — always use "1.0" |
+| specVersion | yes | Always "0.8" |
+| name | yes | Human-readable workflow name |
+| description | no | What the workflow does |
+| dataInputSchema | yes | Path to input JSON schema (relative to resources/) |
+| extensions | yes | Output schema reference for RHDH UI (see rule 2 above) |
+| functions | yes | List of function definitions |
+| start | yes | Name of the first state to execute |
+| states | yes | List of workflow states |
+
+### Function Types
+
+| Type | Operation Format | Use Case |
+|------|-----------------|----------|
+| custom | `sysout` | Log to console |
+| custom | `service:java:<pkg>.<Class>::<Method>` | Call custom Java class |
+| expression | jq expression string (NO arguments) | Transform workflow data |
+| rest | `<openapi_spec>#<operationId>` | Call external REST API |
+
+### State Types
+
+| Type | Description |
+|------|-------------|
+| operation | Execute one or more actions sequentially |
+| switch | Conditional branching based on data or events |
+| sleep | Pause execution for a duration |
+| parallel | Execute branches concurrently |
+| inject | Inject static data into workflow state |
+| forEach | Iterate over an array |
+| callback | Wait for an external event |
+
+### Actions
+
+Actions execute within states. Each action references a function:
+
+```yaml
+actions:
+  - functionRef:
+      refName: print
+      arguments:
+        message: '"Processing " + .inputField'
+  - name: setOutput
+    functionRef:
+      refName: successResult
+```
+- `custom` and `rest` functions take `arguments`
+- `expression` functions do NOT take arguments — call them without the `arguments` block
+- Use `.fieldName` (jq dot notation) to reference workflow data
+- String literals in jq arguments must be double-quoted inside single-quoted YAML
+
+### Transitions
+
+- `end: true` — terminates the workflow after this state (NEVER use `transition: end`)
+- `transition: <NextStateName>` — moves to a named state (NOT the word "end")
+
+## Complete Example: 01_basic
+
+### Workflow Definition (basic.sw.yaml)
+
+```yaml
+id: basic
+version: "1.0"
+specVersion: "0.8"
+name: "basic"
+description: Print input value
+dataInputSchema: schemas/basic__main-schema.json
+extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
+functions:
+  - name: print
+    type: custom
+    operation: sysout
+  - name: customBasic
+    type: custom
+    operation: "service:java:basic.Basic::BasicMethod"
+  - name: successResult
+    type: expression
+    operation: '{
+      "result": {
+      "message": "Project " + .projectName + " active",
+      "outputs":[]
+      }
+      }'
+start: "Print inputs"
+states:
+  - name: Print inputs
+    type: operation
+    actions:
+      - functionRef:
+          refName: print
+          arguments:
+            message: '"Project " + .projectName'
+      - functionRef:
+          refName: customBasic
+          arguments:
+            project: .projectName
+      - name: setOutput
+        functionRef:
+          refName: successResult
+    end: true
+```
+
+### Input Schema (basic__main-schema.json)
+
+The RHDH Orchestrator UI auto-generates forms from this schema.
+Each property becomes a form field with its title and description.
+
+```json
+{
+  "$id": "classpath:/schemas/basic__main-schema.json",
+  "title": "Workflow input data",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "title": "Project Name",
+      "description": "OCP project to create",
+      "type": "string",
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    }
+  },
+  "required": [
+    "projectName"
+  ]
+}
+```
+
+Supported field types: string, number, integer, boolean, array, object.
+Add `"pattern": "<regex>"` for validation.
+Add `"enum": [...]` for dropdown selections.
+
+### Output Schema (workflow-output-schema.json)
+
+This schema is STANDARDIZED for the RHDH Orchestrator UI — use it as-is:
+
+```json
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WorkflowResult",
+    "description": "Schema of workflow output",
+    "type": "object",
+    "properties": {
+        "result": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "High-level summary of the current status, free-form text, human readable.",
+                    "type": "string"
+                },
+                "nextWorkflows": {
+                    "description": "List of workflows suggested to run next. Items at lower indexes are of higher priority.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "description": "Workflow identifier",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Human readable title describing the workflow.",
+                                "type": "string"
+                            }
+                        },
+                        "required": ["id", "name"]
+                    }
+                },
+                "outputs": {
+                    "description": "Additional structured output of workflow processing.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "key": {
+                                "description": "Unique identifier of the option. Preferably human-readable.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Free form value of the option.",
+                                "anyOf": [{"type": "string"}, {"type": "number"}]
+                            },
+                            "format": {
+                                "description": "More detailed type of the 'value' property. Defaults to 'text'.",
+                                "enum": ["text", "number", "link", "markdown"]
+                            }
+                        },
+                        "required": ["key", "value"]
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### Custom Java Class (optional)
+
+```java
+package basic;
+import jakarta.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class Basic {
+    public void BasicMethod(String project) {
+        System.out.println("Custom java code for Basic: " + project);
+    }
+}
+```
+
+Reference in workflow YAML as:
+```yaml
+functions:
+  - name: customBasic
+    type: custom
+    operation: "service:java:basic.Basic::BasicMethod"
+```
+
+### application.properties
+
+```properties
+quarkus.log.category."org.apache.http".level=INFO
+quarkus.log.level=INFO
+kie.flyway.enabled = true
+```
+
+## RHDH Orchestrator UI Integration
+
+- `dataInputSchema` → the RHDH UI renders a form from this JSON schema
+- `extensions[].outputSchema` → the RHDH UI renders the result using this schema
+- `result.message` → displayed as the main status text
+- `result.outputs[]` → rendered as a key/value table (format: text, number, link, markdown)
+- `result.nextWorkflows[]` → rendered as clickable links to start follow-up workflows
+
+## Build and Deploy
+
+Build the workflow image and generate manifests:
+```bash
+../scripts/build.sh --image=quay.io/<org>/<workflow-name>
+```
+
+Build and deploy in one step:
+```bash
+../scripts/build.sh --image=quay.io/<org>/<workflow-name> --deploy
+```
+
+Apply manifests manually:
+```bash
+TARGET_NS=sonataflow-infra
+oc -n ${TARGET_NS} apply -f ./manifests/
+```
+
+Verify deployment:
+```bash
+oc get sonataflow -n sonataflow-infra <workflow_id>
+```
+
+## References
+
+- orchestrator-demo: https://github.com/rhdhorchestrator/orchestrator-demo
+- CNCF ServerlessWorkflow spec: https://serverlessworkflow.io/
+- Developing workflows tutorial: https://redhat-scholars.github.io/serverless-workflow/osl/index.html
+- OpenShift Serverless Logic: https://openshift-knative.github.io/docs/docs/latest/serverless-logic/about.html
