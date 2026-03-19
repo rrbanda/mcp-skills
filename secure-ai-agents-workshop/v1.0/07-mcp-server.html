@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Build and Deploy an MCP Server :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/07-mcp-server.html">
+    <link rel="prev" href="06-secure-execution.html">
+    <link rel="next" href="08-test-mcp-server.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/07-mcp-server.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Build and Deploy an MCP Server</h1>
+<div class="sect1">
+<h2 id="_what_is_mcp"><a class="anchor" href="#_what_is_mcp"></a>What is MCP?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>Model Context Protocol</strong> (MCP) is an open standard that lets AI agents connect to external tools and data sources. Instead of hard-coding integrations, agents discover and invoke tools dynamically at runtime.</p>
+</div>
+<div class="paragraph">
+<p>An MCP server exposes three types of capabilities:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Capability</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Tools</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Functions the agent can call — e.g., <code>list_workspaces()</code>, <code>create_workspace()</code>. Each tool has typed parameters and a docstring that the LLM reads to decide when to use it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Resources</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read-only data the agent can access — files, database records, configuration.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Prompts</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reusable prompt templates the agent can invoke.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In this module, we build an MCP server that wraps the <strong>DevSpaces REST API</strong> as tools. Once deployed, Goose can manage DevSpaces workspaces by calling these tools.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_goosehints_drives_generation"><a class="anchor" href="#_how_goosehints_drives_generation"></a>How .goosehints Drives Generation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>create-fastmcp-server</code> recipe reads <code>.goosehints</code> to discover the API it should wrap. The goosehints file defines endpoints, authentication patterns, and payload shapes:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat .goosehints | head -30</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Key sections the recipe uses:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>API base path</strong> — <code>/apis/workspace.devfile.io/v1alpha2</code></p>
+</li>
+<li>
+<p><strong>Endpoints</strong> — List, Get, Create, Delete, Start, Stop workspaces</p>
+</li>
+<li>
+<p><strong>Auth pattern</strong> — Bearer token via <code>oc whoami -t</code></p>
+</li>
+<li>
+<p><strong>Response format</strong> — Compact dicts with <code>name</code>, <code>namespace</code>, <code>phase</code>, <code>mainUrl</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The recipe translates each REST endpoint into an <code>@mcp.tool</code> function, preserving the auth, error handling, and response format from the goosehints.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_generate_the_mcp_server"><a class="anchor" href="#_generate_the_mcp_server"></a>Generate the MCP Server</h2>
+<div class="sectionbody">
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">goose run --recipe skills/create-fastmcp-server.yaml</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The recipe defaults to output file <code>mcp_server.py</code> and server name <code>MCP Server</code>. Override with: <code>goose run --recipe skills/create-fastmcp-server.yaml --params output_filename=devspaces_mcp.py --params server_name=DevSpaces</code>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The recipe performs these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Reads <code>.goosehints</code> to discover the API</p>
+</li>
+<li>
+<p>Generates a FastMCP server Python file with one tool per endpoint</p>
+</li>
+<li>
+<p>Creates <code>requirements.txt</code></p>
+</li>
+<li>
+<p>Validates imports</p>
+</li>
+<li>
+<p>Runs a smoke test against the live API</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_review_the_generated_code"><a class="anchor" href="#_review_the_generated_code"></a>Review the Generated Code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Examine the generated server structure:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat mcp_server.py</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The generated code follows this pattern:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from fastmcp import FastMCP
+import httpx, os, subprocess, json
+
+mcp = FastMCP("devspaces-mcp")
+
+# --- Shared helpers ---
+
+def _get_token(token: str | None = None) -&gt; str:
+    """Auto-detect OpenShift token from env or CLI."""
+    if token:
+        return token
+    env_token = os.environ.get("OPENSHIFT_TOKEN")
+    if env_token:
+        return env_token
+    return subprocess.check_output(["oc", "whoami", "-t"], text=True).strip()
+
+API_SERVER = subprocess.check_output(
+    ["oc", "whoami", "--show-server"], text=True
+).strip()
+BASE_URL = f"{API_SERVER}/apis/workspace.devfile.io/v1alpha2"
+
+# --- Tools (one per REST endpoint) ---
+
+@mcp.tool
+async def list_workspaces(namespace: str, token: str | None = None) -&gt; list[dict]:
+    """List all DevSpaces workspaces in a namespace."""
+    headers = {"Authorization": f"Bearer {_get_token(token)}"}
+    async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+        resp = await client.get(
+            f"{BASE_URL}/namespaces/{namespace}/devworkspaces",
+            headers=headers,
+        )
+        resp.raise_for_status()
+        items = resp.json().get("items", [])
+        return [
+            {
+                "name": w["metadata"]["name"],
+                "namespace": w["metadata"]["namespace"],
+                "phase": w.get("status", {}).get("phase", "Unknown"),
+            }
+            for w in items
+        ]
+
+# ... additional tools for get, create, delete, start, stop ...
+
+if __name__ == "__main__":
+    mcp.run()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Key patterns to note:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@mcp.tool</code> decorator exposes each function as an MCP tool</p>
+</li>
+<li>
+<p>Docstrings are required — the LLM reads them to decide when to call each tool</p>
+</li>
+<li>
+<p>Token auto-detection lets tools work without passing credentials every time</p>
+</li>
+<li>
+<p>Async HTTP via <code>httpx.AsyncClient</code> for non-blocking calls</p>
+</li>
+<li>
+<p>Compact response dicts — only essential fields, not full Kubernetes objects</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Verify the generated requirements:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat requirements.txt</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">fastmcp
+httpx</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deploy_to_openshift"><a class="anchor" href="#_deploy_to_openshift"></a>Deploy to OpenShift</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the deploy recipe to build, push, and deploy the MCP server:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">goose run --recipe skills/deploy-fastmcp-server.yaml \
+  --params server_file=mcp_server.py \
+  --params namespace=admin-devspaces \
+  --params image_name=devspaces-mcp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The deploy recipe performs these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copies the server file and requirements to a <code>deploy/</code> directory</p>
+</li>
+<li>
+<p>Changes the transport from stdio to <code>streamable-http</code> (so the server listens on HTTP instead of stdin/stdout)</p>
+</li>
+<li>
+<p>Generates a Dockerfile based on <code>python:3.11-slim</code></p>
+</li>
+<li>
+<p>Builds a container image using <code>oc new-build</code> / <code>oc start-build</code></p>
+</li>
+<li>
+<p>Creates a Deployment, Service, and Route via <code>oc apply</code></p>
+</li>
+<li>
+<p>Verifies the pod is running</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_verify_the_deployment"><a class="anchor" href="#_verify_the_deployment"></a>Verify the Deployment</h2>
+<div class="sectionbody">
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -l app=devspaces-mcp -n admin-devspaces</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">NAME                              READY   STATUS    RESTARTS   AGE
+devspaces-mcp-xxxxxxxxxx-xxxxx     1/1     Running   0          2m</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MCP_HOST=$(oc get route devspaces-mcp -n admin-devspaces -o jsonpath='{.spec.host}')
+echo "MCP server URL: https://$MCP_HOST/mcp"</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MCP server URL: https://devspaces-mcp-admin-devspaces.apps.cluster.example.com/mcp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Quick health check — the <code>/mcp</code> endpoint should respond with an MCP protocol message:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sk https://$MCP_HOST/mcp | head -1</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">event: message</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>Troubleshooting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Common issues and how to resolve them:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Symptom</th>
+<th class="tableblock halign-left valign-top">Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Build fails</strong> — <code>pip install</code> error</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check <code>requirements.txt</code> is present in <code>deploy/</code> dir. Run <code>oc logs bc/devspaces-mcp -n admin-devspaces</code> to see build logs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Pod CrashLoopBackOff</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check logs: <code>oc logs -l app=devspaces-mcp -n admin-devspaces --tail=30</code>. Common cause: wrong port or missing environment variable.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Route returns 503</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The pod may still be starting. Wait 30 seconds and retry. Also verify the Service selector matches: <code>oc get svc devspaces-mcp -n admin-devspaces -o yaml</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>ImagePullBackOff</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The build may not have completed. Check: <code>oc get builds -n admin-devspaces</code>. Re-trigger with: <code>oc start-build devspaces-mcp --from-dir=deploy --follow -n admin-devspaces</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Continue to <a href="08-test-mcp-server.html" class="page">Module 8: Test the MCP Server</a> to verify the endpoint and use the MCP tools with Goose.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="06-secure-execution.html" class="query-params-link">Module 6: Secure Execution with Agent Sandbox</a></span>
+  <span class="next"><a href="08-test-mcp-server.html" class="query-params-link">Module 8: Test the MCP Server</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

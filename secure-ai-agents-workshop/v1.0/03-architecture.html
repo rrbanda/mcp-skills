@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>The Architecture: DevSpaces + Agent Sandbox :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/03-architecture.html">
+    <link rel="prev" href="02-industry-solutions.html">
+    <link rel="next" href="04-setup.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="03-architecture.html">Module 3: Architecture</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/03-architecture.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">The Architecture: DevSpaces + Agent Sandbox</h1>
+<div class="sect1">
+<h2 id="_the_enterprise_gap"><a class="anchor" href="#_the_enterprise_gap"></a>The Enterprise Gap</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cloud sandbox providers solve execution isolation for SaaS, but enterprises need more:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>On-premises execution</strong> — data never leaves the datacenter</p>
+</li>
+<li>
+<p><strong>Existing identity/auth</strong> — OIDC, LDAP, RBAC integration</p>
+</li>
+<li>
+<p><strong>Compliance</strong> — audit trails, data residency, regulatory requirements</p>
+</li>
+<li>
+<p><strong>Integration</strong> — CI/CD, GitOps, container registries</p>
+</li>
+<li>
+<p><strong>Multi-tenancy</strong> — shared clusters with tenant isolation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The DevSpaces + Agent Sandbox architecture addresses these requirements on OpenShift.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_each_component_provides"><a class="anchor" href="#_what_each_component_provides"></a>What Each Component Provides</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">Capabilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>DevSpaces</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IDE (Che Code), devfiles, OIDC auth, dashboard, project clone, persistent storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Coding Agent / Goose</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code understanding, planning, generation, tool use</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Agent Sandbox</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Isolated execution with VM isolation (Kata/gVisor), NetworkPolicy, lifecycle management</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>SandboxWarmPool</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pre-warmed pods for sub-second allocation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>SandboxTemplate</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allowed resources, network rules, runtime class</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_combined_architecture"><a class="anchor" href="#_combined_architecture"></a>Combined Architecture</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">OpenShift Cluster
+├── DevSpaces Workspace Pod
+│   ├── Che Code IDE
+│   ├── Goose agent (planning, credentials, /projects persistent)
+│   └── ────────────────────────────────────────────────────────►
+│                                                               │
+│   Agent Sandbox Pod ◄─────────────────────────────────────────┘
+│   ├── Kata/gVisor runtime
+│   ├── Code execution
+│   ├── No credentials (automountServiceAccountToken: false)
+│   ├── Network locked (deny-all + DNS only)
+│   └── Disposable (replaced from WarmPool)
+│
+└── SandboxWarmPool
+    └── Pre-warmed pods ready for instant allocation</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_the_agent_uses_the_sandbox"><a class="anchor" href="#_how_the_agent_uses_the_sandbox"></a>How the Agent Uses the Sandbox</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Three approaches, from simplest to most integrated:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>oc exec</strong> — The agent runs <code>oc exec</code> into a sandbox pod. Simplest; works with any agent.</p>
+</li>
+<li>
+<p><strong>Agent Sandbox Python SDK</strong> — Programmatic claim/exec/release lifecycle.</p>
+</li>
+<li>
+<p><strong>MCP server</strong> — An MCP server wraps the SDK; the agent invokes tools that delegate to the sandbox.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_security_properties"><a class="anchor" href="#_security_properties"></a>Security Properties</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">How It&#8217;s Enforced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kernel isolation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kata/gVisor via <code>runtimeClassName</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No credentials</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>automountServiceAccountToken: false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network lockdown</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NetworkPolicy deny-all + DNS only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource limits</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPU/memory in SandboxTemplate</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Disposable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WarmPool instant replacement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Filesystem isolation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ephemeral by default; optional PVC per sandbox</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Audit trail</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenShift audit logging</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_verify_your_environment"><a class="anchor" href="#_verify_your_environment"></a>Verify Your Environment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before proceeding to Module 4, verify DevSpaces and (if installed) Agent Sandbox:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n openshift-devspaces | head -5</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">NAME                                  READY   STATUS    RESTARTS   AGE
+devspaces-operator-xxxxx-yyyyy        1/1     Running   0          2d
+postgres-xxxxx-yyyyy                  1/1     Running   0          2d</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get sandboxtemplates -A 2&gt;/dev/null || echo "Agent Sandbox not yet installed"</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Agent Sandbox not yet installed</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This is expected — Agent Sandbox is installed in Module 4.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_comparison_industry_approaches"><a class="anchor" href="#_comparison_industry_approaches"></a>Comparison: Industry Approaches</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Capability</th>
+<th class="tableblock halign-left valign-top">Anthropic</th>
+<th class="tableblock halign-left valign-top">K8s Agent Sandbox</th>
+<th class="tableblock halign-left valign-top">GitHub</th>
+<th class="tableblock halign-left valign-top">DevSpaces + Agent Sandbox</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IDE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Claude Code</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(varies)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VS Code / Copilot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Che Code (DevSpaces)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Agent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Claude</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(varies)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Copilot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Goose</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution isolation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bubblewrap/Seatbelt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gVisor/Kata</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GitHub Actions VM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kata/gVisor (Agent Sandbox)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Credential handling</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No credentials in sandbox</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No credentials in sandbox</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No credentials in Actions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No credentials in sandbox</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network controls</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NetworkPolicy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Actions network</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NetworkPolicy deny-all</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Warm pools</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (WarmPool)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (SandboxWarmPool)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multi-tenant</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (org/repo)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (OpenShift)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">On-premises</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partial (local CLI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (Kubernetes)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (OpenShift)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Devfile support</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Self-service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Continue to <a href="04-setup.html" class="page">Module 4: Setup</a> to deploy the sandbox environment using a Goose recipe.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="02-industry-solutions.html" class="query-params-link">Module 2: Industry Solutions</a></span>
+  <span class="next"><a href="04-setup.html" class="query-params-link">Module 4: Setup</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

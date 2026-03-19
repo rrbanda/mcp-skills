@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Test the MCP Server :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/08-test-mcp-server.html">
+    <link rel="prev" href="07-mcp-server.html">
+    <link rel="next" href="09-orchestrator-workflow.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="08-test-mcp-server.html">Module 8: Test the MCP Server</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/08-test-mcp-server.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Test the MCP Server</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module, you verify the deployed MCP server is working, register it as a Goose extension, and use Goose to manage DevSpaces workspaces through the MCP tools.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_verify_the_endpoint"><a class="anchor" href="#_verify_the_endpoint"></a>Verify the Endpoint</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, confirm the MCP server is reachable:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MCP_HOST=$(oc get route devspaces-mcp -n admin-devspaces -o jsonpath='{.spec.host}')
+echo "MCP endpoint: https://$MCP_HOST/mcp"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test the endpoint with curl. The <code>/mcp</code> path serves the Streamable HTTP transport:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sk -X POST https://$MCP_HOST/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python3 -m json.tool</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "protocolVersion": "2024-11-05",
+        "capabilities": {
+            "tools": {}
+        },
+        "serverInfo": {
+            "name": "devspaces-mcp",
+            "version": "0.1.0"
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This confirms the MCP server is alive and responds with the MCP protocol handshake.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_list_available_tools"><a class="anchor" href="#_list_available_tools"></a>List Available Tools</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ask the server what tools it exposes:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sk -X POST https://$MCP_HOST/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | python3 -m json.tool</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see a list of tools like <code>list_workspaces</code>, <code>get_workspace</code>, <code>create_workspace</code>, <code>delete_workspace</code>, <code>start_workspace</code>, and <code>stop_workspace</code> — each with their parameter schemas and descriptions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_register_as_a_goose_extension"><a class="anchor" href="#_register_as_a_goose_extension"></a>Register as a Goose Extension</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now connect Goose to the deployed MCP server. Run the configuration command:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">goose configure</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Follow the interactive menu:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select <strong>Add Extension</strong></p>
+</li>
+<li>
+<p>Choose <strong>Remote (SSE/Streamable HTTP)</strong></p>
+</li>
+<li>
+<p>Enter the server URL: <code><a href="https://&lt;MCP_HOST&gt;/mcp" class="bare">https://&lt;MCP_HOST&gt;/mcp</a></code> (use the hostname from the previous step)</p>
+</li>
+<li>
+<p>Name it: <code>DevSpaces MCP</code></p>
+</li>
+<li>
+<p>Confirm to save</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Verify the extension is registered:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">goose configure</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see <code>DevSpaces MCP</code> in the list of configured extensions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_use_the_mcp_tools_with_goose"><a class="anchor" href="#_use_the_mcp_tools_with_goose"></a>Use the MCP Tools with Goose</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Start a new Goose session. The MCP server tools are now available:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">goose session</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Try these prompts in sequence:</p>
+</div>
+<div class="paragraph">
+<p><strong>Prompt 1 — List workspaces:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">List all DevSpaces workspaces in the admin-devspaces namespace</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Goose calls the <code>list_workspaces</code> tool on the MCP server. You should see workspace names, phases (Running/Stopped), and namespaces returned.</p>
+</div>
+<div class="paragraph">
+<p><strong>Prompt 2 — Get workspace details:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Get the details for workspace &lt;name&gt; in admin-devspaces</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Replace <code>&lt;name&gt;</code> with a workspace name from the previous result. Goose calls the <code>get_workspace</code> tool and returns the IDE URL, creation time, and phase.</p>
+</div>
+<div class="paragraph">
+<p><strong>Prompt 3 — Stop a workspace:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Stop workspace &lt;name&gt; in admin-devspaces</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Goose calls the <code>stop_workspace</code> tool, which PATCHes the DevWorkspace to set <code>started: false</code>.</p>
+</div>
+<div class="paragraph">
+<p>Each interaction follows the same flow:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">You (prompt) → Goose (LLM reasoning) → MCP tool call → MCP Server (HTTP) → DevSpaces API → Response → Goose (formats answer) → You</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_full_picture"><a class="anchor" href="#_the_full_picture"></a>The Full Picture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Step back and look at what you built in this workshop:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">OpenShift Cluster
+├── DevSpaces Workspace
+│   ├── Che Code IDE (your editor)
+│   ├── Goose agent (AI coding assistant)
+│   │   ├── Planning: runs in LLM context (safe)
+│   │   ├── Execution: delegates to Agent Sandbox (isolated)
+│   │   └── MCP: calls DevSpaces MCP Server (tools)
+│   └── /projects (persistent source code)
+│
+├── Agent Sandbox Pod (Kata VM)
+│   ├── No credentials, no network, no K8s API
+│   ├── Disposable — replaced from WarmPool
+│   └── Code execution happens here
+│
+├── DevSpaces MCP Server (Deployment + Route)
+│   └── Wraps DevWorkspace API as MCP tools
+│
+└── SandboxWarmPool
+    └── 3 pre-warmed pods ready for instant allocation</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Every component runs on-premises on your OpenShift cluster. No code or credentials leave the network. The AI agent has full coding capabilities with enterprise-grade security boundaries.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Continue to <a href="09-orchestrator-workflow.html" class="page">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a> to scaffold an RHDH Orchestrator workflow, or skip to <a href="10-wrapup.html" class="page">Module 10: Wrap-up and Next Steps</a> for a summary and cleanup.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="07-mcp-server.html" class="query-params-link">Module 7: Build and Deploy an MCP Server</a></span>
+  <span class="next"><a href="09-orchestrator-workflow.html" class="query-params-link">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

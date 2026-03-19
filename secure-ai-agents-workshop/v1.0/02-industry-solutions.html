@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>How the Industry Solves It :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/02-industry-solutions.html">
+    <link rel="prev" href="01-the-problem.html">
+    <link rel="next" href="03-architecture.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="02-industry-solutions.html">Module 2: Industry Solutions</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/02-industry-solutions.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">How the Industry Solves It</h1>
+<div class="sect1">
+<h2 id="_the_common_pattern"><a class="anchor" href="#_the_common_pattern"></a>The Common Pattern</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every major AI platform has converged on the same architecture: isolate execution from planning.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Developer/Agent Environment -&gt; code exec -&gt; Execution Sandbox (isolated, no credentials, network restricted, disposable)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The agent plans and generates code in a trusted environment, but <strong>executes</strong> inside a sandbox with no access to credentials, secrets, or unrestricted network.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_anthropic_claude_code"><a class="anchor" href="#_anthropic_claude_code"></a>Anthropic (Claude Code)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Anthropic uses two-layer isolation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Filesystem</strong> — bubblewrap on Linux, Seatbelt on macOS</p>
+</li>
+<li>
+<p><strong>Network</strong> — proxy restricting outbound connections</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This approach reduced permission prompts by 84%. The runtime is open source: <a href="https://github.com/anthropic-experimental/sandbox-runtime">anthropic-experimental/sandbox-runtime</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_kubernetes_community_agent_sandbox"><a class="anchor" href="#_kubernetes_community_agent_sandbox"></a>Kubernetes Community (Agent Sandbox)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://github.com/kubernetes-sigs/agent-sandbox">kubernetes-sigs/agent-sandbox</a> project is a <strong>Kubernetes SIG Apps</strong> community effort — not owned by any single vendor. Google engineers were key contributors and <a href="https://opensource.googleblog.com/2025/11/unleashing-autonomous-ai-agents-why-kubernetes-needs-a-new-standard-for-agent-execution.html">announced it on the Google Open Source Blog</a>, and Google provides GKE integration, but it is an open community project under the CNCF umbrella.</p>
+</div>
+<div class="paragraph">
+<p>It provides a Sandbox CRD for isolated singleton workloads, supports gVisor and Kata Containers for VM-level isolation, and a WarmPool for sub-second allocation.</p>
+</div>
+<div class="paragraph">
+<p><strong>Motivation quote:</strong> "Autonomous AI agents generate and execute untrusted, unverified code."</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_github_microsoft_copilot"><a class="anchor" href="#_github_microsoft_copilot"></a>GitHub / Microsoft (Copilot)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>GitHub uses <strong>GitHub Actions</strong> as the compute sandbox:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Ephemeral VM per task</p>
+</li>
+<li>
+<p>All work committed as draft PRs — human must approve before merge</p>
+</li>
+<li>
+<p>VS Code terminal sandboxing for local development</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openai_codex"><a class="anchor" href="#_openai_codex"></a>OpenAI (Codex)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>OpenAI&#8217;s <strong>Codex</strong> is an agentic coding platform (CLI, IDE extension, and cloud) that runs tasks inside sandboxed cloud environments. The <a href="https://platform.openai.com/docs/models/gpt-5.1-codex-max">GPT-5.1-Codex-Max</a> model supports configurable network controls, allowing enterprises to restrict outbound access per task.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cloud_sandbox_providers"><a class="anchor" href="#_cloud_sandbox_providers"></a>Cloud Sandbox Providers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Third-party providers offer managed sandbox infrastructure:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Provider</th>
+<th class="tableblock halign-left valign-top">Technology</th>
+<th class="tableblock halign-left valign-top">Cold Start</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2B</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Firecracker microVMs</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;200ms</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Daytona</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Custom runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sub-90ms creation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Modal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gVisor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50k+ concurrent sandboxes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_isolation_technologies_comparison"><a class="anchor" href="#_isolation_technologies_comparison"></a>Isolation Technologies Comparison</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Technology</th>
+<th class="tableblock halign-left valign-top">Isolation Level</th>
+<th class="tableblock halign-left valign-top">Overhead</th>
+<th class="tableblock halign-left valign-top">Cold Start</th>
+<th class="tableblock halign-left valign-top">Used By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MicroVMs / Firecracker</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Low</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~200ms</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2B, AWS Lambda</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gVisor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kernel syscall filtering</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Low</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~100ms</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Google, Modal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kata Containers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lightweight VM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~1–2s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenShift, Kubernetes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bubblewrap / Seatbelt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Namespace + seccomp</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Minimal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instant</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Anthropic</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hardened Containers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Namespace isolation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Minimal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instant</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker, Kubernetes default</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebAssembly</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WASM runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Minimal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instant</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Emerging</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_try_it_yourself"><a class="anchor" href="#_try_it_yourself"></a>Try It Yourself</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can inspect the open-source implementations mentioned in this module:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone --depth 1 https://github.com/anthropic-experimental/sandbox-runtime.git /tmp/sandbox-runtime 2&gt;/dev/null; ls -la /tmp/sandbox-runtime 2&gt;/dev/null | head -5</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">total 24
+drwxr-xr-x   ...  sandbox-runtime
+drwxr-xr-x   ...  .
+drwxr-xr-x   ...  ..
+-rw-r--r--   ...  README.md
+-rw-r--r--   ...  ...</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone --depth 1 https://github.com/kubernetes-sigs/agent-sandbox.git /tmp/agent-sandbox 2&gt;/dev/null; ls /tmp/agent-sandbox</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">config  deploy  docs  go.mod  go.sum  pkg  README.md  ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Continue to <a href="03-architecture.html" class="page">Module 3: The Architecture</a> to see how DevSpaces and Agent Sandbox combine for an enterprise solution.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="01-the-problem.html" class="query-params-link">Module 1: The Problem</a></span>
+  <span class="next"><a href="03-architecture.html" class="query-params-link">Module 3: Architecture</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

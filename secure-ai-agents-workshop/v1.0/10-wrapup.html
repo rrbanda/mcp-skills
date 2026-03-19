@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Wrap-up and Next Steps :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/10-wrapup.html">
+    <link rel="prev" href="09-orchestrator-workflow.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/10-wrapup.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Wrap-up and Next Steps</h1>
+<div class="sect1">
+<h2 id="_what_we_covered"><a class="anchor" href="#_what_we_covered"></a>What We Covered</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Summary of all 10 modules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Module 0: Welcome and Prerequisites</p>
+</li>
+<li>
+<p>Module 1: The Problem — AI coding agents need secure execution</p>
+</li>
+<li>
+<p>Module 2: Industry Solutions — Claude Code Sandboxing, Agent Sandbox</p>
+</li>
+<li>
+<p>Module 3: Architecture — Kata VMs, NetworkPolicy, WarmPool</p>
+</li>
+<li>
+<p>Module 4: Setup — Deploy Agent Sandbox on OpenShift</p>
+</li>
+<li>
+<p>Module 5: Goose in DevSpaces — First session, recipes, .goosehints</p>
+</li>
+<li>
+<p>Module 6: Secure Execution — SandboxClaim, isolation proof, disposable sandbox</p>
+</li>
+<li>
+<p>Module 7: MCP Server — Generate and deploy FastMCP server</p>
+</li>
+<li>
+<p>Module 8: Test MCP Server — Verify endpoint, register extension, full loop</p>
+</li>
+<li>
+<p>Module 9: Bonus — Orchestrator Workflows with ServerlessWorkflow/SonataFlow</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_skills_used_in_this_workshop"><a class="anchor" href="#_skills_used_in_this_workshop"></a>Skills Used in This Workshop</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Recipe</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+<th class="tableblock halign-left valign-top">What It Automates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy-agent-sandbox</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Module 4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deploy SandboxTemplate, NetworkPolicy, WarmPool; install operator if needed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>create-fastmcp-server</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Module 7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Generate FastMCP server from .goosehints and DevSpaces API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy-fastmcp-server</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Module 7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build image, push to registry, create Deployment + Service + Route</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>create-orchestrator-workflow</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Module 9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scaffold RHDH Orchestrator workflow (ServerlessWorkflow/SonataFlow)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_enterprise_value"><a class="anchor" href="#_the_enterprise_value"></a>The Enterprise Value</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Why this matters for enterprises:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>On-premises</strong> — Code never leaves the network</p>
+</li>
+<li>
+<p><strong>RBAC</strong> — OpenShift identity + DevSpaces namespaces</p>
+</li>
+<li>
+<p><strong>Compliance</strong> — Audit trails, approved base images, data residency</p>
+</li>
+<li>
+<p><strong>Multi-tenant</strong> — Hundreds of developers, each with isolated sandboxes</p>
+</li>
+<li>
+<p><strong>Self-service</strong> — Che Dashboard for workspace creation</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_whats_next"><a class="anchor" href="#_whats_next"></a>What&#8217;s Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Future directions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>MCP server as the sandbox bridge</strong> — Wrap <code>oc exec</code> in an MCP server so agents use the sandbox transparently</p>
+</li>
+<li>
+<p><strong>Upstream contribution</strong> — Propose the DevSpaces + Agent Sandbox pattern to both communities</p>
+</li>
+<li>
+<p><strong>WarmPool auto-scaling</strong> — Tune pool size based on demand</p>
+</li>
+<li>
+<p><strong>Per-task sandbox rotation</strong> — Fresh sandbox per workflow step</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cleanup"><a class="anchor" href="#_cleanup"></a>Cleanup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Remove demo resources:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./demo/cleanup.sh</code></pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">=== Cleaning up Secure Agent Sandbox Demo ===
+
+1. Deleting SandboxClaims...
+2. Deleting SandboxWarmPool...
+3. Waiting for warm pool sandboxes to terminate...
+4. Deleting SandboxTemplate...
+5. Deleting remaining Sandboxes...
+6. Deleting NetworkPolicies...
+7. Deleting any Routes and Services...
+
+=== Cleanup Complete ===
+Namespace {sandbox-namespace} still exists. To remove it: oc delete namespace {sandbox-namespace}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references"><a class="anchor" href="#_references"></a>References</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/kubernetes-sigs/agent-sandbox">kubernetes-sigs/agent-sandbox</a></p>
+</li>
+<li>
+<p><a href="https://www.anthropic.com/engineering/claude-code-sandboxing">Anthropic Claude Code Sandboxing</a></p>
+</li>
+<li>
+<p><a href="https://opensource.googleblog.com/2025/11/unleashing-autonomous-ai-agents-why-kubernetes-needs-a-new-standard-for-agent-execution.html">Agent Sandbox announcement (Google Open Source Blog)</a></p>
+</li>
+<li>
+<p><a href="https://github.com/rrbanda/mcp-skills">This repo</a></p>
+</li>
+<li>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_dev_spaces">Red Hat OpenShift Dev Spaces docs</a></p>
+</li>
+<li>
+<p><a href="https://developer.nvidia.com/blog/practical-security-guidance-for-sandboxing-agentic-workflows-and-managing-execution-risk/">NVIDIA Security Guidance</a></p>
+</li>
+<li>
+<p><a href="https://github.com/rhdhorchestrator/orchestrator-demo">RHDH Orchestrator Demo Workflows</a></p>
+</li>
+<li>
+<p><a href="https://serverlessworkflow.io/">CNCF ServerlessWorkflow Specification</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="09-orchestrator-workflow.html" class="query-params-link">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

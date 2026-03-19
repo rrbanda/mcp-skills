@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>The Problem: Why AI Agents Need Sandboxes :: Secure AI Coding Agents on OpenShift</title>
+    <link rel="canonical" href="https://rrbanda.github.io/mcp-skills/secure-ai-agents-workshop/v1.0/01-the-problem.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="02-industry-solutions.html">
+    <meta name="keywords" content="OpenShift, AI agents, sandbox, Dev Spaces, Kata, Goose">
+    <meta name="generator" content="Antora 2.3.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://rrbanda.github.io/mcp-skills">Secure AI Coding Agents on OpenShift</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="secure-ai-agents-workshop" data-version="v1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">secure-ai-agents-workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Module 0: Welcome and Prerequisites</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="01-the-problem.html">Module 1: The Problem</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="02-industry-solutions.html">Module 2: Industry Solutions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="03-architecture.html">Module 3: Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="04-setup.html">Module 4: Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="05-goose-devspaces.html">Module 5: Your First Goose Session</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="06-secure-execution.html">Module 6: Secure Execution with Agent Sandbox</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="07-mcp-server.html">Module 7: Build and Deploy an MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="08-test-mcp-server.html">Module 8: Test the MCP Server</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="09-orchestrator-workflow.html">Module 9: Bonus&#8201;&#8212;&#8201;Orchestrator Workflows</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="10-wrapup.html">Module 10: Wrap-up and Next Steps</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">secure-ai-agents-workshop</span>
+    <span class="version">v1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">secure-ai-agents-workshop</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">v1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">secure-ai-agents-workshop</a></li>
+    <li><a href="01-the-problem.html">Module 1: The Problem</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/rrbanda/mcp-skills/edit/main/documentation/modules/ROOT/pages/01-the-problem.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">The Problem: Why AI Agents Need Sandboxes</h1>
+<div class="sect1">
+<h2 id="_what_ai_coding_agents_do"><a class="anchor" href="#_what_ai_coding_agents_do"></a>What AI Coding Agents Do</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AI coding agents like Cline, GitHub Copilot, Cursor, and Goose do more than suggest code—they <strong>plan</strong> and <strong>execute</strong> code with developer-level permissions. When you ask an agent to "fix the bug in auth.py," it may:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Read your entire codebase</p>
+</li>
+<li>
+<p>Run shell commands (<code>git</code>, <code>npm</code>, <code>pytest</code>, etc.)</p>
+</li>
+<li>
+<p>Edit files and commit changes</p>
+</li>
+<li>
+<p>Execute scripts and tests</p>
+</li>
+<li>
+<p>Call external APIs</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The agent operates with the same access as you: your SSH keys, environment variables, cloud credentials, and network access. That power is essential for productivity—and dangerous if compromised.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_can_go_wrong"><a class="anchor" href="#_what_can_go_wrong"></a>What Can Go Wrong</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Real incidents demonstrate the risks:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attack Type</th>
+<th class="tableblock halign-left valign-top">Incident</th>
+<th class="tableblock halign-left valign-top">Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prompt Injection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://adnanthekhan.com/posts/clinejection/">Clinejection</a> — a crafted GitHub issue title tricked Cline&#8217;s AI triage bot into executing malicious commands</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~4,000 developer machines compromised; malicious <code>cline@2.3.0</code> package with postinstall script installed OpenClaw globally</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Credential Theft</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://mcpsec.dev/advisories/2025-10-02-kilo-code-ai-agent-supply-chain-attack/">Kilo Code CVE-2025-11445</a> — prompt injection in ClineProvider allowed attackers to rewrite <code>settings.json</code> and bypass security whitelists</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supply chain contamination via automatic commits/pushes; repository poisoning; cross-system credential exposure</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supply Chain Poisoning</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://clawport.io/blog/clawhavoc-supply-chain-attack-what-happened">ClawHavoc</a> — malicious skills uploaded to ClawHub marketplace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~12% of registry compromised; keyloggers, token harvesters, backdoors, and Atomic Stealer (AMOS) malware deployed via trojan skills</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command Injection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/">Trail of Bits RCE</a> — argument injection via command flags (e.g., <code>go test -exec</code>) bypassed human approval</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">One-shot RCE across multiple popular AI agent platforms; validated command whitelists proved insufficient</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource Abuse</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fork bombs, crypto mining, runaway processes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exhausted CPU/memory; cost overruns; denial of service to shared infrastructure</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_planning_vs_execution"><a class="anchor" href="#_planning_vs_execution"></a>Planning vs Execution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The key insight: AI agents have two distinct phases.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Phase</th>
+<th class="tableblock halign-left valign-top">Characteristics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Planning</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Safe. The agent reasons, generates code, and proposes actions. No side effects. No system access. Runs in the LLM context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Execution</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dangerous. The agent runs shell commands, edits files, and makes network calls. Real system impact. Full developer permissions. This is where attacks succeed.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Sandboxing the <strong>execution</strong> phase while leaving planning unrestricted is the solution. The agent can still think and plan freely—but when it executes, it runs inside an isolated environment with no access to credentials, secrets, or sensitive data.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_impact"><a class="anchor" href="#_the_impact"></a>The Impact</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By isolating execution, organizations can adopt AI coding agents without exposing production credentials, source code, or infrastructure to prompt injection, supply chain attacks, or malicious tool abuse. Anthropic reported that sandboxing <a href="https://www.anthropic.com/engineering/claude-code-sandboxing">reduced permission prompts by 84%</a> while maintaining security — letting agents work autonomously within safe boundaries instead of asking for approval on every action.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_try_it_yourself"><a class="anchor" href="#_try_it_yourself"></a>Try It Yourself</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On an <strong>unsandboxed</strong> system, an AI agent (or any process with your permissions) can access sensitive data. Run these commands to see what an agent could read:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat ~/.ssh/id_rsa 2&gt;/dev/null || echo "SSH key accessible if present"</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">printenv | grep -i key</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s https://httpbin.org/ip</code></pre>
+</div>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat /var/run/secrets/kubernetes.io/serviceaccount/token 2&gt;/dev/null | head -c 50</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In Module 6, you&#8217;ll see these same commands <strong>blocked</strong> inside the Agent Sandbox.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next"><a class="anchor" href="#_next"></a>Next</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Continue to <a href="02-industry-solutions.html" class="page">Module 2: Industry Solutions</a> to learn how Anthropic, Google, GitHub, and OpenAI approach sandboxing.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html" class="query-params-link">Module 0: Welcome and Prerequisites</a></span>
+  <span class="next"><a href="02-industry-solutions.html" class="query-params-link">Module 2: Industry Solutions</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
