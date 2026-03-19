@@ -1,7 +1,7 @@
-= Secure AI Coding Agents on OpenShift
+= Secure Coding Agents on OpenShift
 include::_attributes.adoc[]
 
-Welcome to the **Secure AI Coding Agents on OpenShift** workshop.
+Welcome to the **Secure Coding Agents on OpenShift** workshop.
 
 In this hands-on workshop, you will learn why AI coding agents need sandboxed execution, how the industry approaches this problem, and how to build a production-grade solution using **Red Hat OpenShift Dev Spaces** and **Kubernetes Agent Sandbox** with **Kata VM isolation**.
 

@@ -1,6 +1,6 @@
 # On-Prem AI Coding Agent on OpenShift
 
-> **Workshop**: [Secure AI Coding Agents on OpenShift](https://rrbanda.github.io/mcp-skills/) -- a hands-on workshop covering why AI agents need sandboxes, the architecture of DevSpaces + Agent Sandbox, and end-to-end demos with Goose, MCP, and Kata VM isolation.
+> **Workshop**: [Secure Coding Agents on OpenShift](https://rrbanda.github.io/mcp-skills/) -- a hands-on workshop covering why AI agents need sandboxes, the architecture of DevSpaces + Agent Sandbox, and end-to-end demos with Goose, MCP, and Kata VM isolation.
 
 A reference architecture for running [goose](https://block.github.io/goose/) -- an open-source AI coding agent by Block -- fully on-premises on OpenShift. Goose writes code, debugs, generates MCP tools, deploys to the cluster, and fixes its own bugs -- powered by an on-prem LLM served by vLLM on OpenShift AI, with [Llama Stack](https://llamastack.github.io/) as the unified AI runtime providing standardized APIs for inference, agents, RAG, and safety.
 

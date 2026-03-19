@@ -2,7 +2,7 @@ runtime:
   cache_dir: ./.cache/antora
 
 site:
-  title: "Secure AI Coding Agents on OpenShift"
+  title: "Secure Coding Agents on OpenShift"
   url: https://rrbanda.github.io/mcp-skills/
   start_page: secure-ai-agents-workshop::index.adoc
 
