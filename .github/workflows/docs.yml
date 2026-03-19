@@ -21,9 +21,11 @@ jobs:
       with:
         fetch-depth: 0
     - name: Run antora
-      uses: docker://antora/antora:2.3.1
+      uses: docker://antora/antora:3.1.10
       with:
         args: site.yml
+    - name: Disable Jekyll
+      run: touch gh-pages/.nojekyll
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@releases/v4
       with:
