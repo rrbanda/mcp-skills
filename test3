@@ -1,0 +1,18 @@
+Bullet Points:
+
+Developers create new MCP servers through a self-service template in Orion (RHDH)
+The template scaffolds a ready-to-use project and provisions a preconfigured Dev Spaces workspace
+The workspace includes an on-prem coding agent with agent skills to build MCP servers using FastMCP
+On-prem coding agent ensures pointed context and enhanced token efficiency -- code never leaves the cluster
+Pushing code automatically builds, packages, and deploys the MCP server via Tekton CI/CD
+Seamless onboarding of existing MCP servers into the catalog
+Flow (6 steps, left to right):
+
+Step	Action
+1	Developer selects the MCP Server template in Orion
+2	Orion scaffolds a project repo with FastMCP skeleton, Dockerfile, and deployment manifests
+3	A Dev Spaces workspace is provisioned with the coding agent and agent skills baked in
+4	Developer uses agent skills to generate and customize MCP server tools for their target API
+5	Developer commits code and pushes to the repo
+6	Tekton pipeline auto-triggers: builds container image, deploys MCP server to the cluster
+The key change is making the flow tell a clear cause-and-effect story: select template -> scaffolded project -> IDE with agent -> customize code -> push -> auto-deploy. The original had "Provide IDE via Dev Spaces" as a step the developer performs, when it's actually something Orion does for them.
